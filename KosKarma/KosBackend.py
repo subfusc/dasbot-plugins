@@ -126,7 +126,7 @@ class KosBackend(object):
                                                                                                str(user)))
         return user
 
-    def _delEntity(self, entity):
+    def delEntity(self, entity):
         user = self._userExists(entity)
         if user:
             self.__exe("DELETE FROM {table} WHERE id = ?;".format(table = self.utable), (user, ))
@@ -256,7 +256,7 @@ class KosBackend(object):
         for entity in self.getAllEntities():
             karma = self.getKarma(entity, t=t)
             if karma[1] == 0 and karma [2] == 0: 
-                self._delEntity(entity)
+                self.delEntity(entity)
                 continue
             
             if len(rlist) < n:
@@ -292,7 +292,7 @@ class KosBackend(object):
         for entity in self.getAllEntities():
             karma = self.getKarma(entity,t=t)
             if karma[1] == 0 and karma[2] == 0: 
-                self._delEntity(entity)
+                self.delEntity(entity)
                 continue
                 
             if len(rlist) < n:
@@ -309,7 +309,6 @@ class KosBackend(object):
                         break
         return rlist
     
-        
 if __name__ == '__main__':
     db = KosBackend(':memory:', decay_time=0.01, lowercase=True)
     db.positiveKarma('Line')

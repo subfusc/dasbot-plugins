@@ -44,6 +44,9 @@ class Plugin(object):
             return [(1, kwargs["from_nick"], "!lokarma [n] lists n worst things")]
         if  command == "low":
             return [(1, kwargs["from_nick"], "!low [n] lists n worst things")]
+        if command == "rmkarma":
+            return [(1, kwargs["from_nick"], "!rmkarma [thing] \"Deletes all karma for a given thing\"")]
+                     
     
     def cmd(self, command, args, channel, **kwargs):
         if command == "+1":
@@ -126,7 +129,11 @@ class Plugin(object):
                 worst = self.backend(channel).getNWorstList()
             worst = string.join(["{}: {:.2f}".format(to_bytes(e), k[0]) for e,k in worst])
             return [(1, channel, "bad karma things in {} - {}".format(channel, worst))]
-
+            
+        if command == "rmkarma":
+            if kwargs["auth_level"] > 80 and args:
+                self.backend(channel).delEntity(args.strip())
+        
     def listen(self, msg, channel, **kwargs):
         for karmatoken in self.reg.findall(msg):
             match = [x for x in karmatoken if x != ""][0]
