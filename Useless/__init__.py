@@ -9,10 +9,11 @@ UNIVERSE_RE = r'^.*natur.*univers'
 
 class Plugin(object):
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         self.shadap = re.compile(SHADAP_RE, re.I)
         self.dicere = re.compile(DICE_CMD_RE, re.U)
         self.universe = re.compile(UNIVERSE_RE, re.I)
+        self.x = kwargs['config'].get('test','x')
         
     def listen(self, msg, channel, **kwargs):
         if msg.find(NICK) != -1 and self.shadap.search(msg):
@@ -36,6 +37,8 @@ class Plugin(object):
                 return [(0, channel, kwargs['from_nick'], "Head")]
             else:
                 return [(0, channel, kwargs['from_nick'], "Tail")]
+        if command == 'readmyconfig?':
+            return [(0, channel, kwargs['from_nick'], self.x)]
         if match:
             if match.group('number') != '':
                 answ = [randint(1, int(match.group('size'))) for x in range(0, int(match.group('number')))]
