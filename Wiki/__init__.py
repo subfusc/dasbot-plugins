@@ -69,8 +69,10 @@ class Plugin(object):
                     del(self.listeners[channel])
                 elif len(args) == 2:
                     del(self.listeners[args[1]])
-            elif args[0] == 'changes' and len(args) >= 2:
-                return self._get_changes(args[1])
+            elif args[0] == 'changes':
+                if len(args) >= 2:
+                    return self._get_changes(args[1])
+                else: return self._get_changes(channel)
                 # todo
         
 
