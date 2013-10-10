@@ -4,10 +4,10 @@ from sys import stderr
 
 class Plugin(object):
 
-    def __init__(self, *args):
+    def __init__(self, **kwargs):
         self.listeners = {}
         self.history = {}
-        self.stop = {}
+        #self.stop = {}
 
     def _get_changes(self, channel):
         history = self.history[channel] if channel in self.history else None
@@ -26,10 +26,10 @@ class Plugin(object):
         if response:
             rlist = []
             for event in response['query']['recentchanges']:
-                rlist.append((channel, to_bytes(event['user']), 
+                rlist.append((1, channel, ": ".join((to_bytes(event['user']), 
                 to_bytes(event['type']), to_bytes(event['comment']), 
                 to_bytes(event['timestamp']),
-                to_bytes(event['title']) if 'title' in event else ""))
+                to_bytes(event['title']) if 'title' in event else ""))))
             return rlist
                 
     def _filter_new(self, channel, response): pass
@@ -39,8 +39,6 @@ class Plugin(object):
         if channel in self.stop: return
         if channel in self.history and channel in self.listeners:
             history = self.history[channel]
-            
-            
         
     def cmd(self, cmd, args, channel, **kwargs):
         # stderr.write("Call: " + cmd + " :: " + args + " :: " + channel + " " + str(kwargs) + "\n")
@@ -50,9 +48,11 @@ class Plugin(object):
             if args[0] == 'add' and kwargs['auth_level'] >= 50:
                 if len(args) == 2:
                     self.listeners[channel] = wiki.MediaWiki(args[1])
+                    return [(1, channel, "Added {0} to {1}.".format(args[1], channel))]
                 elif len(args) == 3:
                     if args[1][0] == '#':
                         self.listeners[args[1]] = wiki.MediaWiki(args[2])
+                        return [(1, channel, "Added {0} to {1}.".format(args[1], args[2]))]
                 elif len(args) == 4:
                     self.listeners[channel] = wiki.MediaWiki(args[1])
                     if self.listeners[channel].login(args[2], args[3]):
@@ -72,14 +72,15 @@ class Plugin(object):
             elif args[0] == 'changes':
                 if len(args) >= 2:
                     return self._get_changes(args[1])
-                else: return self._get_changes(channel)
+                else:
+                    return self._get_changes(channel)
                 # todo
         
 
 if __name__ == '__main__':
     t = Plugin()
-    t.cmd('wiki', 
-          'add #test http://pisk.ifi.uio.no/wiki/api.php', 
-          'tull', from_nick='me', auth_level = 51)
-    print(t.cmd('wiki', 'changes #test', 'tull', from_nick='me'))
-    print(t.cmd('wiki', 'changes', '#test', from_nick='me'))
+    print (t.cmd('wiki', 
+                    'add http://pisk.ifi.uio.no/wiki/api.php', 
+                    '#tull', from_nick='me', auth_level = 51))
+    print(t.cmd('wiki', 'changes #tull', 'tull', from_nick='me'))
+    print(t.cmd('wiki', 'changes', '#tull', from_nick='me'))
