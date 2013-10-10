@@ -12,26 +12,27 @@ class Plugin(object):
     def _get_changes(self, channel):
         history = self.history[channel] if channel in self.history else None
         response = None
-        if len(args) == 1 and channel in self.listeners:
+        if channel in self.listeners:
             response = self.listeners[channel].call({'action': 'query',
                                                      'list': 'recentchanges',
                                                      'rclimit': '5',
                                                      'rcprop': 'user|comment|title|timestamp'})
-        elif len(args) == 2 and args[1] in self.listeners:
-            response = self.listeners[args[1]].call({'action': 'query',
-                                                     'list': 'recentchanges',
-                                                     'rclimit': '5',
-                                                     'rcprop': 'user|comment|title|timestamp'})
-            if response:
-                rlist = []
-                for event in response['query']['recentchanges']:
-                    rlist.append((channel, to_bytes(event['user']), 
-                                  to_bytes(event['type']), to_bytes(event['comment']), 
-                                  to_bytes(event['timestamp']),
-                                  to_bytes(event['title']) if 'title' in event else ""))
-                return rlist
+        #print response
+        # elif len(args) == 2 and args[1] in self.listeners:
+        #     response = self.listeners[args[1]].call({'action': 'query',
+        #                                              'list': 'recentchanges',
+        #                                              'rclimit': '5',
+        #                                              'rcprop': 'user|comment|title|timestamp'})
+        if response:
+            rlist = []
+            for event in response['query']['recentchanges']:
+                rlist.append((channel, to_bytes(event['user']), 
+                to_bytes(event['type']), to_bytes(event['comment']), 
+                to_bytes(event['timestamp']),
+                to_bytes(event['title']) if 'title' in event else ""))
+            return rlist
                 
-    def _filter_new(self, channel, response):
+    def _filter_new(self, channel, response): pass
 
     
     def monitor(self, args, channel, **kwargs): 
@@ -68,8 +69,9 @@ class Plugin(object):
                     del(self.listeners[channel])
                 elif len(args) == 2:
                     del(self.listeners[args[1]])
-            elif args[0] == 'changes':
-
+            elif args[0] == 'changes' and len(args) >= 2:
+                return self._get_changes(args[1])
+                # todo
         
 
 if __name__ == '__main__':
