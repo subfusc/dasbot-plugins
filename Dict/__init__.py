@@ -25,7 +25,7 @@ class Plugin(object):
 
     def cmd(self, command, args, channel, **kwargs):
         if command == "gr":
-            if args:
+            if args and len(args.split()) != 0:
                 return [(0, channel, self.gram(args.split()[0]))]
             else:
                return self.help(command, args, channel,**kwargs)

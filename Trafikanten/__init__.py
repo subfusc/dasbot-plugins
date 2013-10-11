@@ -27,14 +27,14 @@ class Plugin():
             if args == None:
                 args = 'sentrum'
             svar = self.trafikanten_k(args)
-            print "SVAR: ", svar
+#            print "SVAR: ", svar
             if len(svar) < 2:
                 s = "I am a Bear of Very Little Brain, and long words Bother me."
             else:
-                print svar
+#                print svar
                 s1 = svar[0]
-                print type(s1)
-                print type(s1.decode('utf-8'))
+#                print type(s1)
+#                print type(s1.decode('utf-8'))
                 #print type(unicode(s1.decode('utf-8')))
                 s2 = svar[1]
                 s = s1 + s2.encode('utf-8')
@@ -88,7 +88,8 @@ class Plugin():
                 'ullevål': '2',
                 'murmansk': 'Sognsvann'}
         k = msg.split()
-        print ""
+        #        print ""
+        if len(k) == 0: return []
         datere = re.compile('^\/Date\(([^+]*)\+.*$')
         hvor = k[0]
         if k[0].lower() in steder:
