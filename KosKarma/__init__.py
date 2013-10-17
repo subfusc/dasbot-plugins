@@ -13,7 +13,7 @@ class Plugin(object):
         self.backends = dict()
         self.prefix = "data" + sep + "karma"
         self.suffix = ".karma"
-        self.reg = re.compile(r"(\S+\+\+)|(\S+--)|(--\S+)|(\+\+\S+)", re.U)
+        self.reg = re.compile(r"(\(incf\s+\S+\))|(\S+\+\+)|(\S+--)|(--\S+)|(\+\+\S+)", re.U)
 
         if not path.isdir(self.prefix):
             makedirs(self.prefix)
@@ -143,6 +143,14 @@ class Plugin(object):
                 
             if match.startswith("--") or match.endswith("--"):
                 self.backend(channel).negativeKarma(to_unicode(match.strip("--")))
+
+            if match.startswith("(incf"):
+                thing = match.lstrip("(incf").lstrip(" ").rstrip(")")
+                if msg.count("(incf (incf") > 0:
+                    return [(1, channel, "Sorry, I am not written in Lisp. I am just hacked togheter in Python.")]
+                if thing != kwargs['from_nick']:
+                    self.backend(channel).positiveKarma(to_unicode(thing))
+                
 
     def stop(self):
         for be in self.backends.values():
