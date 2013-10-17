@@ -13,7 +13,7 @@ class Plugin(object):
         self.backends = dict()
         self.prefix = "data" + sep + "karma"
         self.suffix = ".karma"
-        self.reg = re.compile(r"(\(incf\s+\S+\))|(\S+\+\+)|(\S+--)|(--\S+)|(\+\+\S+)", re.U)
+        self.reg = re.compile(r"(\(decf\s+([^\s()]+)\s*(\s+(\d+))?\))|(\(incf\s+([^\s()]+)\s*(\s+(\d+))?\))|(\S+\+\+)|(\S+--)|(--\S+)|(\+\+\S+)", re.U)
 
         if not path.isdir(self.prefix):
             makedirs(self.prefix)
@@ -136,21 +136,37 @@ class Plugin(object):
         
     def listen(self, msg, channel, **kwargs):
         for karmatoken in self.reg.findall(msg):
-            match = [x for x in karmatoken if x != ""][0]
-            if match.startswith("++") or match.endswith("++"):
-                if match.strip("++") != kwargs['from_nick']:
-                    self.backend(channel).positiveKarma(to_unicode(match.strip("++")))
+            match = [x for x in karmatoken if x != ""]
+            if match[0].startswith("++") or match[0].endswith("++"):
+                if match[0].strip("++") != kwargs['from_nick']:
+                    self.backend(channel).positiveKarma(to_unicode(match[0].strip("++")))
                 
-            if match.startswith("--") or match.endswith("--"):
-                self.backend(channel).negativeKarma(to_unicode(match.strip("--")))
+            if match[0].startswith("--") or match[0].endswith("--"):
+                self.backend(channel).negativeKarma(to_unicode(match[0].strip("--")))
 
-            if match.startswith("(incf"):
-                thing = match.lstrip("(incf").lstrip(" ").rstrip(")")
-                if msg.count("(incf (incf") > 0:
-                    return [(1, channel, "Sorry, I am not written in Lisp. I am just hacked togheter in Python.")]
-                if thing != kwargs['from_nick']:
-                    self.backend(channel).positiveKarma(to_unicode(thing))
-                
+            if match[0].startswith("(incf"):
+                if len(match) > 2:
+                    number = int(match[3])
+                    if number <= 3 and number > 0 and match[1] != kwargs['from_nick']:
+                        for i in range(1, number):
+                            self.backend(channel).positiveKarma(to_unicode(match[1]))
+                    else:
+                        return [(1, kwargs['from_nick'],
+                                 "You are not allowed to give more than 3 karmas (and not under 1) at once.")]
+                if match[1] != kwargs['from_nick']:
+                    self.backend(channel).positiveKarma(to_unicode(match[1]))
+
+            if match[0].startswith("(decf"):
+                if len(match) > 2:
+                    number = int(match[3])
+                    if number <= 3 and number > 0 and match[1] != kwargs['from_nick']:
+                        for i in range(1, number):
+                            self.backend(channel).negativeKarma(to_unicode(match[1]))
+                    else:
+                        return [(1, kwargs['from_nick'],
+                                 "You are not allowed to take more than 3 karmas (and not under 1) at once.")]
+                if match[1] != kwargs['from_nick']:
+                    self.backend(channel).negativeKarma(to_unicode(match[1]))
 
     def stop(self):
         for be in self.backends.values():
