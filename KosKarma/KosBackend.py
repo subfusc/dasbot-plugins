@@ -227,7 +227,7 @@ class KosBackend(object):
             pos = 0
             neg = 0
             for row in self.__exe("SELECT * FROM {table}".format(table = "user" + str(user))):
-                print(row[1])
+                #print(row[1])
                 if row[0] == 1:
                     karma += self._calculate(row[1], t = t)
                     pos += 1
@@ -252,7 +252,7 @@ class KosBackend(object):
         """
         rlist = []
         if not t: t = time()
-        print(t, t - self.decay_time)
+        #print(t, t - self.decay_time)
         for entity in self.getAllEntities():
             karma = self.getKarma(entity, t=t)
             if karma[1] == 0 and karma [2] == 0: 

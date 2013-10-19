@@ -13,7 +13,11 @@ class Plugin(object):
         self.backends = dict()
         self.prefix = "data" + sep + "karma"
         self.suffix = ".karma"
-        self.reg = re.compile(r"(\\addtocounter\{([^}]+)\}\{([^}]+)\})|(\(decf\s+([^\s()]+)\s*(\s+(\d+))?\))|(\(incf\s+([^\s()]+)\s*(\s+(\d+))?\))|(\S+\+\+)|(\S+--)|(--\S+)|(\+\+\S+)", re.U)
+        self.reg = re.compile(r"""
+        (\\addtocounter\{([^}]+)\}(\{(\d+)\})) # Latex Style \addtocounter
+        |(\(decf\s+([^\s()]+)\s*(\s+(\d+))?\)) # Lisp (decf x y) same as ++
+        |(\(incf\s+([^\s()]+)\s*(\s+(\d+))?\)) # Lisp (incf x y) same as --
+        |(\S+\+\+)|(\S+--)|(--\S+)|(\+\+\S+) #normal ++ -- C++ karma add""", re.U + re.X)
 
         if not path.isdir(self.prefix):
             makedirs(self.prefix)
@@ -144,19 +148,7 @@ class Plugin(object):
             if match[0].startswith("--") or match[0].endswith("--"):
                 self.backend(channel).negativeKarma(to_unicode(match[0].strip("--")))
 
-            if match[0].startswith("\\addtocounter"):
-                if len(match) > 2:
-                    number = int(match[2])
-                    if number <= 3 and number > 0 and match[1] != kwargs['from_nick']:
-                        for i in range(1, number):
-                            self.backend(channel).positiveKarma(to_unicode(match[1]))
-                    else:
-                        return [(1, kwargs['from_nick'],
-                                 "You are not allowed to give more than 3 karmas (and not under 1) at once.")]
-                if match[1] != kwargs['from_nick']:
-                    self.backend(channel).positiveKarma(to_unicode(match[1]))
-
-            if match[0].startswith("(incf"):
+            if match[0].startswith("(incf") or match[0].startswith("\\addtocounter"):
                 if len(match) > 2:
                     number = int(match[3])
                     if number <= 3 and number > 0 and match[1] != kwargs['from_nick']:
