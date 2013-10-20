@@ -14,10 +14,11 @@ class Plugin(object):
         self.prefix = "data" + sep + "karma"
         self.suffix = ".karma"
         self.reg = re.compile(r"""
-        (\\addtocounter\{([^}]+)\}(\{(\d+)\})) # Latex Style \addtocounter
-        |(\(decf\s+([^\s()]+)\s*(\s+(\d+))?\)) # Lisp (decf x y) same as ++
-        |(\(incf\s+([^\s()]+)\s*(\s+(\d+))?\)) # Lisp (incf x y) same as --
-        |(\S+\+\+)|(\S+--)|(--\S+)|(\+\+\S+) #normal ++ -- C++ karma add""", re.U + re.X)
+        (\\addtocounter\{([^}]+)\}(\{(\d+)\})) # Latex Style \addtocounter{x}{y}
+        |(\(decf\s+([^\s()]+)\s*(\s+(\d+))?\)) # Lisp (decf x y) same as --
+        |(\(incf\s+([^\s()]+)\s*(\s+(\d+))?\)) # Lisp (incf x y) same as ++
+        |(\S+\+\+)|(\S+--)|(--\S+)|(\+\+\S+)   # Normal ++ -- C++-style add
+        """, re.U + re.X)
 
         if not path.isdir(self.prefix):
             makedirs(self.prefix)
