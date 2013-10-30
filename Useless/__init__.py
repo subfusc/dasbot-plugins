@@ -14,6 +14,9 @@ class Plugin(object):
         self.dicere = re.compile(DICE_CMD_RE, re.U)
         self.universe = re.compile(UNIVERSE_RE, re.I)
         self.x = kwargs['config'].get('test','x')
+        self.verbose = kwargs['verbose']
+        self.debug = kwargs['debug']
+        self.jobs_exist = 'new_job' in kwargs and 'del_job' in kwargs
         
     def listen(self, msg, channel, **kwargs):
         if msg.find(NICK) != -1 and self.shadap.search(msg):
@@ -39,6 +42,12 @@ class Plugin(object):
                 return [(0, channel, kwargs['from_nick'], "Tail")]
         if command == 'readmyconfig?':
             return [(0, channel, kwargs['from_nick'], self.x)]
+        if command == 'verbose?':
+            return [(0, channel, kwargs['from_nick'], 'yes' if self.verbose else 'no')]
+        if command == 'debug?':
+            return [(0, channel, kwargs['from_nick'], 'yes' if self.debug else 'no')]
+        if command == 'cronjobs?':
+            return [(0, channel, kwargs['from_nick'], 'yes' if self.jobs_exist else 'no')]
         if match:
             if match.group('number') != '':
                 answ = [randint(1, int(match.group('size'))) for x in range(0, int(match.group('number')))]
