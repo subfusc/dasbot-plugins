@@ -19,6 +19,7 @@ import sqlite3
 from math import cos, sin, pi
 from time import time, sleep
 from sys import stderr
+from shutil import move
 
 DEBUG = False
 
@@ -59,6 +60,7 @@ class KosBackend(object):
             return self.sql_db.execute(string, values)
         else:
             return self.sql_db.execute(string)
+        self.__com()
             
     def __com(self):
         self.sql_db.commit()
@@ -109,18 +111,18 @@ class KosBackend(object):
     def _conditionalCreateOverview(self):
         self.__exe("CREATE TABLE IF NOT EXISTS " + self.utable
                    + " (id INTEGER PRIMARY KEY, entity TEXT UNIQUE NOT NULL);")
-        self.__com()
+        
         for row in self.__exe("SELECT * FROM " + self.utable + ";"):
             self.__exe("CREATE TABLE IF NOT EXISTS " + ("user" + str(row[0]))
                                 + " (positive INTEGER, date INTEGER NOT NULL);")
-        self.__com()
+        
                 
     def _checkUserOrCreateDatabase(self, entity):
         user = self._userExists(entity)
         if not user:
             self.__exe("INSERT INTO {table} (id, entity) VALUES (?, ?);".format(table = self.utable),
                        (None, entity.lower() if self.lowercase else entity))
-            self.__com()
+            
             user = self._userExists(entity)
             self.__exe("CREATE TABLE {table} (positive INTEGER, date INTEGER NOT NULL)".format(table = "user" + 
                                                                                                str(user)))
@@ -131,7 +133,7 @@ class KosBackend(object):
         if user:
             self.__exe("DELETE FROM {table} WHERE id = ?;".format(table = self.utable), (user, ))
             self.__exe("DROP TABLE {table};".format(table = "user" + str(user)))
-            self.__com()
+            
         
     def connect(self, database_name=None):
         """
@@ -144,7 +146,19 @@ class KosBackend(object):
         @rtype: None
         """
         if (database_name):
-            self.sql_db = sqlite3.connect(database_name) if database_name else None
+            try:
+                self.sql_db = sqlite3.connect(database_name, isolation_level="EXCLUSIVE") if database_name else None
+            except:
+                timestamp = str(time.time())
+                move(database_name, database_name + ".bck" + timestamp)
+                move(database_name + "-journal", database_name + ".bck" + timestamp + "-journal")
+                con = sqlite3.connect(database_name + ".bck" + timestamp)
+                with open(database_name, 'w') as f:
+                    for line in con.iterdump():
+                        f.write("{}\n".format(line))
+                con.close()
+                self.sql_db = sqlite3.connect(database_name, isolation_level="EXCLUSIVE") if database_name else None
+                
             self.db_open = True if self.sql_db else False
         
         if self.db_open:
@@ -310,7 +324,7 @@ class KosBackend(object):
         return rlist
     
 if __name__ == '__main__':
-    db = KosBackend(':memory:', decay_time=0.01, lowercase=True)
+    db = KosBackend(':memory:', decay_time=0.0000001, lowercase=True)
     db.positiveKarma('Line')
     db.positiveKarma('Sindre')
     print("Line has: {k}".format(k = db.getKarma('Line')))
