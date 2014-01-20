@@ -151,6 +151,7 @@ class KosBackend(object):
                 self.__exe("CREATE TABLE IF NOT EXISTS rwcheck (date INTEGER NOT NULL);")
                 self.__exe("INSERT INTO rwcheck (date) VALUES (?);".format(time()))
                 self.__com()
+
             except Exception as e:
                 if DEBUG: print(e)
 
@@ -158,9 +159,9 @@ class KosBackend(object):
                 move(database_name, database_name + ".bck" + timestamp)
                 if exists(database_name + "-journal"):
                     move(database_name + "-journal", database_name + ".bck" + timestamp + "-journal")
-                con = sqlite3.connect(database_name + ".bck" + timestamp)
 
-                with open(database_name + ".bck" + timestamp, 'w') as f:
+                con = sqlite3.connect(database_name + ".bck" + timestamp)
+                with open(database_name, 'w') as f:
                     for line in con.iterdump():
                         f.write("{}\n".format(line.encode('utf-8')))
                 con.close()
