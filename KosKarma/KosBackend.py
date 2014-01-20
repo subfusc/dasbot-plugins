@@ -20,6 +20,7 @@ from math import cos, sin, pi
 from time import time, sleep
 from sys import stderr
 from shutil import move
+from os.path import exists
 
 DEBUG = False
 
@@ -60,7 +61,6 @@ class KosBackend(object):
             return self.sql_db.execute(string, values)
         else:
             return self.sql_db.execute(string)
-        self.__com()
             
     def __com(self):
         self.sql_db.commit()
@@ -148,18 +148,25 @@ class KosBackend(object):
         if (database_name):
             try:
                 self.sql_db = sqlite3.connect(database_name, isolation_level="EXCLUSIVE") if database_name else None
-            except:
-                timestamp = str(time.time())
+                self.__exe("CREATE TABLE IF NOT EXISTS rwcheck (date INTEGER NOT NULL);")
+                self.__exe("INSERT INTO rwcheck (date) VALUES (?);".format(time()))
+                self.__com()
+            except Exception as e:
+                if DEBUG: print(e)
+
+                timestamp = str(int(time()))
                 move(database_name, database_name + ".bck" + timestamp)
-                move(database_name + "-journal", database_name + ".bck" + timestamp + "-journal")
+                if exists(database_name + "-journal"):
+                    move(database_name + "-journal", database_name + ".bck" + timestamp + "-journal")
                 con = sqlite3.connect(database_name + ".bck" + timestamp)
-                with open(database_name, 'w') as f:
+
+                with open(database_name + ".bck" + timestamp, 'w') as f:
                     for line in con.iterdump():
-                        f.write("{}\n".format(line))
+                        f.write("{}\n".format(line.encode('utf-8')))
                 con.close()
+
                 self.sql_db = sqlite3.connect(database_name, isolation_level="EXCLUSIVE") if database_name else None
-                
-            self.db_open = True if self.sql_db else False
+                self.db_open = True if self.sql_db else False
         
         if self.db_open:
             self._conditionalCreateOverview()
@@ -174,6 +181,7 @@ class KosBackend(object):
         @rtype: None
         """
         if self.db_open:
+            self.sql_db("DROP TABLE IF EXISTS rwcheck;")
             self.sql_db.close()
             self.db_open = False
         
