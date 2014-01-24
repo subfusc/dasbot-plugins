@@ -10,6 +10,8 @@ from KosBackend import KosBackend
 from shutil import copytree
 from shutil import rmtree
 from shutil import move
+from os import getenv
+
 
 class Plugin(object): 
 

@@ -147,22 +147,7 @@ class KosBackend(object):
         @rtype: None
         """
         if (database_name):
-            if DEBUG: print(e)
-
-            move(database_name, database_name + ".bck")
-            if exists(database_name + "-journal"):
-                move(database_name + "-journal", database_name + ".bck" + "-journal")
-                
-            con = sqlite3.connect(database_name + ".bck")
-            with open(database_name, 'w') as f:
-                for line in con.iterdump():
-                    f.write("{}\n".format(line.encode('utf-8')))
-            con.close()
-            
-            remove(database_name + ".bck")
-            if exists(database_name + "-journal"):
-                remove(database_name + ".bck" + "-journal")
-            
+            if DEBUG: print(e)            
             self.sql_db = sqlite3.connect(database_name, isolation_level="EXCLUSIVE") if database_name else None
             self.db_open = True if self.sql_db else False
         
