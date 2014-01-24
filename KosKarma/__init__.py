@@ -5,7 +5,11 @@ from kitchen.text.converters import to_bytes, to_unicode
 from os import sep
 from os import path
 from os import makedirs
+from os.path import exists
 from KosBackend import KosBackend
+from shutil import copytree
+from shutil import rmtree
+from shutil import move
 
 class Plugin(object): 
 
@@ -13,6 +17,12 @@ class Plugin(object):
         self.backends = dict()
         self.prefix = "data" + sep + "karma"
         self.suffix = ".karma"
+
+        if exists(self.prefix):
+            copytree(self.prefix, self.prefix + "backup")
+            rmtree(self.prefix)
+            move(self.prefix + "backup", self.prefix)
+        
         self.reg = re.compile(r"""
         (\\addtocounter\{([^}]+)\}(\{(\d+)\})) # Latex Style \addtocounter{x}{y}
         |(\(decf\s+([^\s()]+)\s*(\s+(\d+))?\)) # Lisp (decf x y) same as --
@@ -27,7 +37,7 @@ class Plugin(object):
         chan = chan.strip("#") + self.suffix
         if chan not in self.backends:
             bpath = path.join(self.prefix, chan)
-            self.backends[chan] = KosBackend(bpath, 90, True) 
+            self.backends[chan] = KosBackend(bpath, 90, True)
         return self.backends[chan]
 
     def help(self, command, args, channel, **kwargs):

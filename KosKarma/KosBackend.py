@@ -19,8 +19,9 @@ import sqlite3
 from math import cos, sin, pi
 from time import time, sleep
 from sys import stderr
-from shutil import move
 from os.path import exists
+from shutil import move
+from os import remove
 
 DEBUG = False
 
@@ -148,17 +149,20 @@ class KosBackend(object):
         if (database_name):
             if DEBUG: print(e)
 
-            timestamp = str(int(time()))
-            move(database_name, database_name + ".bck" + timestamp)
+            move(database_name, database_name + ".bck")
             if exists(database_name + "-journal"):
-                move(database_name + "-journal", database_name + ".bck" + timestamp + "-journal")
+                move(database_name + "-journal", database_name + ".bck" + "-journal")
                 
-            con = sqlite3.connect(database_name + ".bck" + timestamp)
+            con = sqlite3.connect(database_name + ".bck")
             with open(database_name, 'w') as f:
                 for line in con.iterdump():
                     f.write("{}\n".format(line.encode('utf-8')))
             con.close()
-
+            
+            remove(database_name + ".bck")
+            if exists(database_name + "-journal"):
+                remove(database_name + ".bck" + "-journal")
+            
             self.sql_db = sqlite3.connect(database_name, isolation_level="EXCLUSIVE") if database_name else None
             self.db_open = True if self.sql_db else False
         
