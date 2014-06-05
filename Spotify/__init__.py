@@ -12,7 +12,7 @@ import tinyurl
 # </div>'''
 
 title_re = r'<h1\s+itemprop="name">([^<]+)</h1>'
-artist_re = r'<h2>\s+by\s+<a href="[^"]+">([^<]+)</a></h2>'   
+artist_re = r'<h2>\s*by\s*<a href="[^"]+">([^<]+)</a></h2>'   
 
 spotify_adr = r'\s*(http://open.spotify.com/[^/]*\S*)\s*'
 spotify_thing = r'\s*spotify:([^:]+):(\S*)\s*'
