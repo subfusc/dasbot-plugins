@@ -35,7 +35,7 @@ class Plugin(object):
         values = { 'api_option':'paste',
                    'api_paste_private':'1',
                    'api_paste_name':args,
-                   'api_paste_expire_date':'10M',
+                   'api_paste_expire_date':'1W',
                    'api_dev_key':'4c59086bba061d1c49277a824599343c',
                    'api_paste_code':code }
 
