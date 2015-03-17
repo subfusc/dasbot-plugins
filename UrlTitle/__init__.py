@@ -58,9 +58,12 @@ class Plugin(object):
         req = urllib2.Request(url, headers={'User-Agent':"Magic Browser"}) 
         try:
             page_content = urllib2.urlopen(req, timeout=3)
+            page_soup = BeautifulSoup.BeautifulSoup(page_content)
         except urllib2.URLError:
             return None
-        page_soup = BeautifulSoup.BeautifulSoup(page_content)
+        except:
+            print "UrlTitle. Other error"
+            return None
         title = None
         if page_soup.title and page_soup.title.string:
             title = page_soup.title.string.strip()
