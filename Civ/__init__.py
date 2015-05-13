@@ -57,9 +57,7 @@ class Plugin(object):
     def cmd(self, command, args, channel, **kwargs):
         if command == "civ-log-start":
             if args:
-                args = args.split()
-                if len(args) >= 2:
-                    self.url = args[1]
+                self.url = args
             else:
                 return [(0, channel, kwargs['from_nick'], "Civ log url not given.")]
             self.channel = channel
