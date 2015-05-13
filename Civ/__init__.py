@@ -20,10 +20,13 @@
 # 
 # Example of script to update web server on civ server:
 # 
-# inotifywait -m ~/ -e create --format "%f %T" --timefmt "%c" | \            
+# inotifywait -m ~/ -e create modify --format "%f %T" --timefmt "%c" | \            
 #  while read line
 #  do
+#  if [[ $line == freeciv-T* ]]
+#  then
 #  echo $line > log.txt
+#  fi
 #  done
 
 from GlobalConfig import *
@@ -38,6 +41,8 @@ class Plugin(object):
     def __init__(self, **kwargs):
         self.last = ""
         self.sleeptime = 30
+        self.url = "http://civ.aogt.de/log.txt"
+        self.jobs = []
 
     def help(self, command, args, channel, **kwargs):
         if command == 'civ-log-start':
@@ -52,30 +57,27 @@ class Plugin(object):
 
     def cmd(self, command, args, channel, **kwargs):
         if command == "civ-log-start":
-            self.url = ""
             if args:
                 args = args.split()
                 if len(args) >= 2:
                     self.url = args[1]
             self.channel = channel
-            self.run = True
-            kwargs['new_job']((time.time() + self.sleeptime, self.check_civlog, [kwargs['new_job']]))
+            self.jobs.append(kwargs['new_job']((time.time() + self.sleeptime, self.check_civlog, [kwargs['new_job']])))
             return [(0, channel, kwargs['from_nick'], "civ-log checker started")]
         if command == "civ-log-stop":
-            self.run = False
+            for i in self.jobs:
+                kwargs['del_job'](i)
             return [(0, channel, kwargs['from_nick'], "civ-log checker stopped")]
 
     def check_civlog(self, new_job):
-        if not self.run:
-            return
         cur = self.civlog()
         if cur != self.last:
-            new_job((time.time() + self.sleeptime, self.check_civlog, [new_job]))
+            self.jobs.append(new_job((time.time() + self.sleeptime, self.check_civlog, [new_job])))
             self.last = cur
             tmp = "Ny runde: {}".format(cur)
             return [(0, self.channel, tmp)]#
-        new_job((time.time() + self.sleeptime, self.check_civlog, [new_job]))
-        #return [(0, self.channel, 'tralala')]
+        self.jobs.append(new_job((time.time() + self.sleeptime, self.check_civlog, [new_job])))
+        #return [(0, self.channel, 'no change')]
             
     def civlog(self):
         f = urllib2.urlopen(self.url)
