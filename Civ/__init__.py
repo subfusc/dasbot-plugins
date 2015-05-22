@@ -79,8 +79,12 @@ class Plugin(object):
         #return [(0, self.channel, 'no change')]
             
     def civlog(self):
-        f = urllib2.urlopen(self.url)
-        s = f.read()
-        f.close()
-        return s
+        try:
+            f = urllib2.urlopen(self.url)
+            s = f.read()
+            f.close()
+            return s
+        except:
+            return self.last
+         
 
