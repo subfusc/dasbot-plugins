@@ -17,7 +17,7 @@ class Plugin:
 
     def check_and_msg(self, channel, result):
         if result[0] != None and result[1] != None:
-            return [(0, channel, "{a} by {b}, {c} ".format(a = result[1], b = result[0], c = tinyurl.create_one(self.spe.grooveshark_search(result[1], result[0]))))]
+            return [(0, channel, "{a} by {b}, {c} ".format(a = result[1], b = result[0], c = tinyurl.create_one(self.spe.youtube_search(result[1], result[0]))))]
         else:
             return [(0, channel, "Spotify Timed out??")]
 
@@ -42,11 +42,6 @@ class SpotifyExtract:
     def parse_spotify(self, url):
         answer = json.loads(urlopen(url).read())
         return (answer['artists'][0]['name'], answer['name'])
-
-    def grooveshark_search(self, title, artist):
-        title = title.replace(" ", "+")
-        artist = artist.replace(" ", "+")
-        return "http://grooveshark.com/#!/search?q=%s+%s" % (title, artist)
 
     def youtube_search(self, title, artist):
         title = title.replace(" ", "+")
