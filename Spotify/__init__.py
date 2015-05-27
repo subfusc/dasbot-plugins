@@ -41,9 +41,9 @@ class SpotifyExtract:
 
     def parse_spotify(self, url):
         answer = json.loads(urlopen(url).read())
-        return (answer['artists'][0]['name'], answer['name'])
+        return (', '.join(map(lambda a: a['name'], answer['artists'])), answer['name'])
 
     def youtube_search(self, title, artist):
         title = title.replace(" ", "+")
-        artist = artist.replace(" ", "+")
+        artist = artist.replace(" ", "+").replace(",", "")
         return "http://www.youtube.com/results?search_query=%s+%s" % (title, artist)
