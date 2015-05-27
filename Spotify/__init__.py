@@ -5,7 +5,7 @@ import json
 import time
 import tinyurl
 
-spotify_adr = r'\s*(http://open.spotify.com/([^/]+)/(\S+))\s*'
+spotify_adr = r'\s*(https://play.spotify.com/([^/]+)/(\S+))\s*'
 spotify_thing = r'\s*spotify:([^:]+):(\S+)\s*'
 
 class Plugin:
@@ -17,7 +17,7 @@ class Plugin:
 
     def check_and_msg(self, channel, result):
         if result[0] != None and result[1] != None:
-            return [(0, channel, "{a} by {b}, {c} ".format(a = result[1], b = result[0], c = tinyurl.create_one(self.spe.youtube_search(result[1], result[0]))))]
+            return [(0, channel, "{a} by {b}, {c} ".format(a = result[1].encode('utf-8'), b = result[0].encode('utf-8'), c = tinyurl.create_one(self.spe.youtube_search(result[1].encode('utf-8'), result[0].encode('utf-8')))))]
         else:
             return [(0, channel, "Spotify Timed out??")]
 

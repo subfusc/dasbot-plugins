@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*- 
-# 
+# -*- coding: utf-8 -*-
+#
 # Copyright (C) 2012 Herman Torjussen
 #
 # This program is free software: you can redistribute it and/or modify
@@ -39,23 +39,23 @@ def iriToUri(iri):
 class Plugin(object):
 
     def __init__(self):
-        self.url_regex = r"https?://(?!open.spotify.com)([^.]+.[^.]+)(.[^.]+)*(/([^/]+/)*([^.]+.[^?]+)?([?]\S+)?)?"
+        self.url_regex = r"https?://(?!play.spotify.com)([^.]+.[^.]+)(.[^.]+)*(/([^/]+/)*([^.]+.[^?]+)?([?]\S+)?)?"
         self.blank_regex = r"\s+"
         self.MAXLINEWIDTH = 79
         self.ure = re.compile(self.url_regex)
         self.titlesub = re.compile(self.blank_regex)
-        
+
     def listen(self, msg, channel, **kwargs):
         chanurl = self.ure.search(msg)
         if chanurl:
             title = self.urltitle(chanurl.group())
             if title:
                 return [(1, channel, title[:self.MAXLINEWIDTH])]
-            
+
     def urltitle(self, url):
         url = url.decode("utf-8")
         url = iriToUri(url)
-        req = urllib2.Request(url, headers={'User-Agent':"Magic Browser"}) 
+        req = urllib2.Request(url, headers={'User-Agent':"Magic Browser"})
         try:
             page_content = urllib2.urlopen(req, timeout=3)
             page_soup = BeautifulSoup.BeautifulSoup(page_content)
