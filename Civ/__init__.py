@@ -52,7 +52,7 @@ class Plugin(object):
             return msg
         if command == 'longturn':
             msg = [(1, kwargs['from_nick'], "Start notifikasjon om nye turer i en longturn server. Trenger bare port nr for å regne ut turer.")]
-            msg.append((1, kwargs['from_nick'], "!longturn <port>"))
+            msg.append((1, kwargs['from_nick'], "!longturn <port> <turnlength>"))
             return msg
         if command == 'stop-longturn':
             msg = [(1, kwargs['from_nick'], "Stop notifikasjoner for en longturn server.")]
@@ -74,23 +74,29 @@ class Plugin(object):
             for i in self.jobs:
                 kwargs['del_job'](i)
             return [(0, channel, kwargs['from_nick'], "civ-log checker stopped")]
-        if command == 'longturn' and args:
-            if args:
-                try:
-                    result = self.start_timer(channel, int(args), kwargs['new_job'])
-                    if result:
-                        return [(0, channel, kwargs['from_nick'], result)]
-                except:
-                    return [(0, channel, kwargs['from_nick'], "Not a port number.")]
+        if command == 'longturn' and args.find(' ') != -1:
+            margs = args.split()
+            try:
+                result = self.start_timer(channel, int(margs[0]),  kwargs['new_job'], int(margs[1]))
+                if result:
+                    return [(0, channel, kwargs['from_nick'], result)]
+            except:
+                return [(0, channel, kwargs['from_nick'], "Not a port number.")]
+        elif command == 'longturn' and args:
+            try:
+                result = self.start_timer(channel, int(args),  kwargs['new_job'])
+                if result:
+                    return [(0, channel, kwargs['from_nick'], result)]
+            except:
+                return [(0, channel, kwargs['from_nick'], "Not a port number.")]
         if command == 'stop-longturn' and args:
-            if args:
-                try:
-                    kwargs['del_job'](self.longturn[channel][int(args)])
-                    if self.longturn.has_key(channel):
-                        chan = self.longturn[channel]
-                        del(chan[int(args)])
-                except:
-                    return [(0, channel, kwargs['from_nick'], "Could not find job.")]
+            try:
+                kwargs['del_job'](self.longturn[channel][int(args)][0])
+                if self.longturn.has_key(channel):
+                    chan = self.longturn[channel]
+                    del(chan[int(args)])
+            except:
+                return [(0, channel, kwargs['from_nick'], "Could not find job.")]
 
 
     def check_civlog(self, new_job):
@@ -112,30 +118,34 @@ class Plugin(object):
         except:
             return self.last
 
-    def time_untill_next_round(self, port):
-        return 23*60*60 - (time.time() + port % 10 * (2 * 60 * 60)) % (23*60*60);
+    def time_untill_next_round(self, port, round_time=23):
+        return round_time*60*60 - (time.time() + port % 10 * (2 * 60 * 60)) % (round_time*60*60);
 
-    def format_longturn_time(self, port):
-        t = self.time_untill_next_round(port)
+    def format_longturn_time(self, port, round_time=23):
+        t = self.time_untill_next_round(port,round_time)
         return "Next round in {h} hours {m} minutes and {s} seconds.".format(h = int((t / (60 * 60))),
                                                                              m = int(((t / 60) % 60)),
                                                                              s =  int(t % 60))
 
-    def new_round(self, channel, port, new_job):
-        self.longturn[channel][port] = new_job((time.time() + self.time_untill_next_round(port), self.new_round, [channel, port, new_job]))
+    def new_round(self, channel, port, new_job, round_time=23):
+        self.longturn[channel][port] = [new_job((time.time() + self.time_untill_next_round(port,round_time),
+                                                 self.new_round, [channel, port, new_job, round_time])), round_time]
         return [(0, channel, "New round for longturn game on port {p}.".format(p = port))]
 
-    def start_timer(self, channel, port, new_job):
+    def start_timer(self, channel, port, new_job, round_time=23):
         if self.longturn.has_key(channel):
             port_hash = self.longturn[channel]
             if port_hash.has_key(port):
-                return self.format_longturn_time(port)
+                return self.format_longturn_time(port, port_hash[port][1])
             else:
-                port_hash[port] = new_job((time.time() + self.time_untill_next_round(port), self.new_round, [channel, port, new_job]))
+                port_hash[port] = [new_job((time.time() + self.time_untill_next_round(port), self.new_round, [channel, port, new_job])), round_time]
         else:
-            self.longturn[channel] = {port: new_job((time.time() + self.time_untill_next_round(port), self.new_round, [channel, port, new_job]))}
+            self.longturn[channel] = {port: [new_job((time.time() + self.time_untill_next_round(port),
+                                                      self.new_round, [channel, port, new_job, round_time])),
+                                             round_time]}
 
 if __name__ == '__main__':
     p = Plugin()
-    print(p.start_timer('foo',5121, lambda x: False ))
-    print(p.start_timer('foo',5121, lambda x: False ))
+    print(p.start_timer('foo',5121, lambda x: False, 25))
+    print(p.start_timer('foo',5121, lambda x: False, 25))
+    print(p.start_timer('foo',5121, lambda x: False))
