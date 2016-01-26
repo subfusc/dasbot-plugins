@@ -13,18 +13,24 @@ class Plugin(object):
             if word and 'definition' in word and 'word' in word:
                 message = "{w}: {d}".format(w = word['word'].encode('utf-8'),
                                             d = word['definition'].replace("\n", "").replace("\r", "").encode('utf-8'))
+                r = []
                 if len(message) > 250:
-                    r = []
                     if 'permalink' in word:
                         r.append((0, channel,
                                   "For more info: {u}".format(u = word['permalink'])))
-                    if 'example' in word:
-                        r.append((0, channel,
-                                  "Example: {e}".format(e = word['example'].encode('utf-8'))[0:247] + "..."))
+
                     r.append((0, channel, message[0:247] + "..."))
-                    return r
                 else:
-                    return [(0, channel, message)]
+                    r.append((0, channel, message))
+
+                if 'example' in word:
+                    example = "Example: {e}".format(e = word['example'].replace("\n","").replace("\r","").encode('utf-8'))
+                    if len(example) > 250:
+                        r.append((0, channel, example[0:247] + "..."))
+                    else:
+                        r.append((0, channel, example))
+
+                return r
             else:
                 return [(0, channel,
                          "Sorry, I couldn't find \"{w}\"".format(w = args))]
@@ -36,3 +42,8 @@ class Plugin(object):
             return answer['list'][0]
         else:
             return False
+
+
+if __name__ == '__main__':
+    p = Plugin()
+    print(p.cmd('define', 'GUI', 'test'))
