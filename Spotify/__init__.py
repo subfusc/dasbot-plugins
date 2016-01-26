@@ -18,8 +18,6 @@ class Plugin:
     def check_and_msg(self, channel, result):
         if result[0] != None and result[1] != None:
             return [(0, channel, "{a} by {b}, {c} ".format(a = result[1].encode('utf-8'), b = result[0].encode('utf-8'), c = tinyurl.create_one(self.spe.youtube_search(result[1].encode('utf-8'), result[0].encode('utf-8')))))]
-        else:
-            return [(0, channel, "Spotify Timed out??")]
 
     def listen(self, msg, channel, **kwargs):
         match = self.spre.search(msg)
@@ -37,8 +35,11 @@ class SpotifyExtract:
         return string + 's'
 
     def rewrite_and_parse(self, spotify_type, identifier):
-        return self.parse_spotify("http://api.spotify.com/v1/%s/%s" % (self.to_plural(spotify_type), identifier))
-
+        if ['album', 'track'].count(spotify_type) == 1:
+            return self.parse_spotify("http://api.spotify.com/v1/%s/%s" % (self.to_plural(spotify_type), identifier))
+        else:
+            return [None, None]
+        
     def parse_spotify(self, url):
         answer = json.loads(urlopen(url).read())
         return (', '.join(map(lambda a: a['name'], answer['artists'])), answer['name'])
