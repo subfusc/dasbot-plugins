@@ -18,6 +18,9 @@ class Plugin(object):
                     if 'permalink' in word:
                         r.append((0, channel,
                                   "For more info: {u}".format(u = word['permalink'])))
+                    if 'example' in word:
+                        r.append((0, channel,
+                                  "Example: {e}".format(e = word['example'].encode('utf-8'))[0:247] + "..."))
                     r.append((0, channel, message[0:247] + "..."))
                     return r
                 else:
