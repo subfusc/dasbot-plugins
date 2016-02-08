@@ -1,20 +1,26 @@
 # -*- coding: utf-8 -*-
 from urllib import urlopen
+from urllib import FancyURLopener
 from random import randint
 from time   import time
 import json
+
+class RedditOpener(FancyURLopener):
+    version = 'Das hammermaessige bot/Python/urllib' 
+    #hdr = { 'User-Agent' : 'Das hammermaessige bot/Python/urllib' }
 
 class Plugin:
 
     def __init__(self):
         self.aww_list = None
         self.aww_updated_at = None
+        self.reddit_opener = RedditOpener()
 
     def cmd(self, command, args, channel, **kwargs):
         if command == 'aww' or command == 'sad' or command == 'depressed':
             if self.aww_updated_at == None or (time() - self.aww_updated_at) > 600:
                 url = 'https://reddit.com/r/aww/hot.json?limit=100'
-                self.aww_list = json.loads(urlopen(url).read())
+                self.aww_list = json.loads(self.reddit_opener.open(url).read())
 
                 if 'error' in self.aww_list:
                     print(self.aww_list['error'])
