@@ -6,7 +6,7 @@ from time   import time
 import json
 
 class RedditOpener(FancyURLopener):
-    version = 'Das hammermaessige bot/Python/urllib' 
+    version = 'Das hammermaessige bot/Python/urllib'
     #hdr = { 'User-Agent' : 'Das hammermaessige bot/Python/urllib' }
 
 class Plugin:
@@ -30,6 +30,11 @@ class Plugin:
                     self.aww_updated_at = time()
 
             item = self.aww_list['data']['children'][randint(1,len(self.aww_list['data']['children']) - 1)]
+
+            if args:
+                args = args.split(' ')
+                if len(args) == 1:
+                    return [(0, channel, args[0], item['data']['url'])]
             return [(0, channel, kwargs['from_nick'], item['data']['url'])]
 
 if __name__ == '__main__':
@@ -37,3 +42,5 @@ if __name__ == '__main__':
     print(p.cmd('aww', None, '#dasbot', from_nick='foo'))
     print(p.cmd('aww', None, '#dasbot', from_nick='foo'))
     print(p.cmd('aww', None, '#dasbot', from_nick='foo'))
+    print(p.cmd('aww', 'AssFace', '#dasbot', from_nick='foo'))
+    print(p.cmd('aww', 'AssFace foo bar', '#dasbot', from_nick='foo'))
