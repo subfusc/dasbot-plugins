@@ -3,6 +3,7 @@ from urllib import urlopen
 from urllib import FancyURLopener
 from random import randint, choice
 from time   import time
+from kitchen.text.converters import to_bytes, to_unicode
 import json
 
 class RedditOpener(FancyURLopener):
@@ -42,15 +43,25 @@ class Plugin:
                     self.aww_updated_at = time()
 
             item = self.aww_list['data']['children'][randint(1,len(self.aww_list['data']['children']) - 1)]
+            message = item['data']['url']
+            nick = kwargs['from_nick']
 
             if args:
                 args = args.split(' ')
-                if len(args) == 1:
-                    return [(0, channel, args[0], item['data']['url'])]
-            if command == 'morn':
-                print choice(self.mornlist)
-                return [(0, channel, choice(self.mornlist) + item['data']['url'])]
-            return [(0, channel, kwargs['from_nick'], item['data']['url'])]
+                if len(args) >= 1:
+                    nick = args[0]
+                if len(args) == 2:
+                    if args[1][0] == '#':
+                        channel = args[1]
+                    else:
+                        channel = '#' + args[1]
+            elif command == 'morn':
+                message = choice(self.mornlist) + message
+
+            try:
+                return[(0, channel, to_bytes(to_unicode(nick)), to_bytes(to_unicode(message)))]
+            except:
+                return[(0, channel, kwars['from_nick'], 'Couldn\'t convert to unicode. :(')]
 
 
 if __name__ == '__main__':
@@ -58,5 +69,6 @@ if __name__ == '__main__':
     print(p.cmd('aww', None, '#dasbot', from_nick='foo'))
     print(p.cmd('aww', None, '#dasbot', from_nick='foo'))
     print(p.cmd('aww', None, '#dasbot', from_nick='foo'))
-    print(p.cmd('aww', 'AssFace', '#dasbot', from_nick='foo'))
-    print(p.cmd('aww', 'AssFace foo bar', '#dasbot', from_nick='foo'))
+    print(p.cmd('aww', 'ÅssFøce', '#dasbot', from_nick='foo'))
+    print(p.cmd('aww', 'AssFace foo', '#dasbot', from_nick='foo'))
+    print(p.cmd('aww', 'AssFace #foo', '#dasbot', from_nick='foo'))
