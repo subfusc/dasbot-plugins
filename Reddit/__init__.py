@@ -48,14 +48,14 @@ class Plugin:
 
             if args:
                 args = args.split(' ')
-                if len(args) >= 1:
+                if len(args) >= 1 and len(args[0]) > 2:
                     nick = args[0]
-                if len(args) == 2:
+                if len(args) == 2 and len(args[1]) > 2:
                     if args[1][0] == '#':
                         channel = args[1]
                     else:
                         channel = '#' + args[1]
-            elif command == 'morn':
+            if command == 'morn':
                 message = choice(self.mornlist) + message
 
             try:
