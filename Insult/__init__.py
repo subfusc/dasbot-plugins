@@ -17,7 +17,7 @@ class Plugin(object):
         try:
             result = urlopen("http://www.insultgenerator.org/").read()
             result = result.split("<br><br>")[1].split("</div>")[0].strip()
-            print "RESULT: ", result
+            result = unescape(result)
         except:
             result = "I could not find an appropriate insult for you. Which says it all, really."
         return result
