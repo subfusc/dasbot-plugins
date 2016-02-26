@@ -88,9 +88,12 @@ class Plugin(object):
         return nick_data
 
     def cmd(self, command, args, channel, **kwargs):
-        if command == 'talklike' and args and channel in self.hmms:
-            if args.strip() in self.hmms[channel]:
-                blurb = self.hmms[channel][args.strip()].generate_markov_text(30)
+        if command == 'talklike' and args:
+            print 'talklike: ' + channel
+            print self.hmms.keys()
+        #if channel in self.hmms:
+            if channel[1:] in self.hmms and args.strip() in self.hmms[channel[1:]]:
+                blurb = self.hmms[channel[1:]][args.strip()].generate_markov_text(30)
                 blurb = blurb.split('.')[0] + '.'
                 print blurb.decode('utf8')
             else:
