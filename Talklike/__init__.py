@@ -3,6 +3,7 @@ import string
 import random
 import codecs
 from string import punctuation
+from kitchen.text.converters import to_bytes, to_unicode
 import os
 
 class Markov(object):
@@ -95,10 +96,16 @@ class Plugin(object):
             if channel[1:] in self.hmms and args.strip() in self.hmms[channel[1:]]:
                 blurb = self.hmms[channel[1:]][args.strip()].generate_markov_text(30)
                 blurb = blurb.split('.')[0] + '.'
-                print blurb.decode('utf8')
+                try:
+                    print blurb.decode('utf8')
+                except:
+                    print "unicode error"
             else:
                 blurb = "I don't know this '%s'." % (args)
-            return [(0, channel, blurb)]
+            try:
+                return [(0, channel, to_bytes(to_unicode(blurb)))]
+            except:
+                return [(0, channel, kwars['from_nick'], 'Couldn\'t convert to unicode. :(')]
 
 if __name__ == '__main__':
     print('done')
