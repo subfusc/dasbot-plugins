@@ -5,6 +5,7 @@ import codecs
 from string import punctuation
 from kitchen.text.converters import to_bytes, to_unicode
 import os
+import re
 
 class Markov(object):
 
@@ -19,6 +20,7 @@ class Markov(object):
         #random.shuffle(data)
         data = string.join(data, '')
         words = data.split()
+        #words = re.split("[\W+]", data)
         return words
 
 
@@ -42,8 +44,7 @@ class Markov(object):
             else:
                 self.cache[key] = [w3]
 
-    def generate_markov_text(self, size=10):
-
+    def generate_markov_text(self, size):
         w1, w2 = ('#', '#')
         while True:
             seed = random.randint(0, self.word_size-3)
@@ -56,6 +57,11 @@ class Markov(object):
                 gen_words.append(w1)
                 w1, w2 = w2, random.choice(self.cache[(w1, w2)])
         gen_words.append(w2)
+        while gen_words:
+            if len(gen_words[-1]) > 4:
+                break
+            else:
+                gen_words = gen_words[:-1]
         return ' '.join(gen_words)
 
 class Plugin(object):
@@ -82,7 +88,7 @@ class Plugin(object):
             line = line.split()
             if len(line) > 10:
                 nick = line[2].split("!")[0].split()[0].strip()
-                text = ' '.join([ w.lower() for w in line[4:] if w[0] not in punctuation])
+                text = ' '.join([w.lower() for w in line[4:] if w[0] not in punctuation])
                 if not nick in nick_data:
                     nick_data[nick] = []
                 nick_data[nick].append(text + '\n')
@@ -105,10 +111,9 @@ class Plugin(object):
             try:
                 return [(0, channel, to_bytes(to_unicode(blurb)))]
             except:
-                return [(0, channel, kwars['from_nick'], 'Couldn\'t convert to unicode. :(')]
+                return [(0, channel, kwargs['from_nick'], 'Couldn\'t convert to unicode. :(')]
 
 if __name__ == '__main__':
     print('done')
     p = Plugin()
-    p.cmd('talklike', 'trondth', 'termvakt-fjas')
-
+    p.cmd('talklike', 'Lebbe', '#gloop')
