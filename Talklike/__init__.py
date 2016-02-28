@@ -6,9 +6,9 @@ from string import punctuation
 from kitchen.text.converters import to_bytes, to_unicode
 import os
 import re
+from itertools import chain
 
 class Markov(object):
-
     def __init__(self, data):
         self.cache = {}
         self.words = self.to_words(data)
@@ -25,11 +25,6 @@ class Markov(object):
 
 
     def triples(self):
-        """ Generates triples from the given data string. So if our string were
-                "What a lovely day", we'd generate (What, a, lovely) and then
-                (a, lovely, day).
-        """
-
         if len(self.words) < 3:
             return
 
@@ -47,7 +42,7 @@ class Markov(object):
     def generate_markov_text(self, size):
         w1, w2 = ('#', '#')
         while True:
-            seed = random.randint(0, self.word_size-3)
+            seed = random.randint(0, self.word_size - 2)
             w1, w2 = self.words[seed], self.words[seed+1]
             if (w1, w2) in self.cache:
                 break
@@ -65,7 +60,6 @@ class Markov(object):
         return ' '.join(gen_words)
 
 class Plugin(object):
-
     def __init__(self, **kwargs):
         self.hmms = {}
         for crap, shit, logger in os.walk("data/log/"):
@@ -80,6 +74,17 @@ class Plugin(object):
                     for nick in nick_data:
                         self.hmms[chan][nick] = Markov(nick_data[nick])
 
+
+    def get_random_end(self):
+        # crazy strategy for skewing probabilities!!!11
+        period = ['.' for x in range(20)]
+        bang = ['!' for x in range(10)]
+        question = ['?' for x in range(5)]
+        triple_bang = ['!!!' for x in range(2)]
+        smile = [':-)' for x in range(1)]
+        ironic = ['!!!11' for x in range(1)]
+        joined = [x for x in chain(period, bang, question, triple_bang, smile, ironic)]
+        return random.choice(joined)
 
     def get_nick_data(self, log):
         nick_data = {}
@@ -100,8 +105,9 @@ class Plugin(object):
             print self.hmms.keys()
         #if channel in self.hmms:
             if channel[1:] in self.hmms and args.strip() in self.hmms[channel[1:]]:
-                blurb = self.hmms[channel[1:]][args.strip()].generate_markov_text(30)
-                blurb = blurb.split('.')[0] + '.'
+                blurb = self.hmms[channel[1:]][args.strip()].generate_markov_text(25)
+                if blurb[-1] not in punctuation:
+                    blurb = blurb + self.get_random_end()
                 try:
                     print blurb.decode('utf8')
                 except:
@@ -116,4 +122,4 @@ class Plugin(object):
 if __name__ == '__main__':
     print('done')
     p = Plugin()
-    p.cmd('talklike', 'Lebbe', '#gloop')
+    p.cmd('talklike', 'cyclo', '#gloop')
