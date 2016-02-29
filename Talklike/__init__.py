@@ -8,6 +8,8 @@ import os
 import re
 from itertools import chain
 
+NONOCHARS = "\"'()[]\{\}"
+
 class Markov(object):
     def __init__(self, data):
         self.cache = {}
@@ -20,8 +22,15 @@ class Markov(object):
         #random.shuffle(data)
         data = string.join(data, '')
         words = data.split()
+        actual_words = []
+        for w in words:
+            if w[0] in NONOCHARS:
+                w = w[1:]
+            if w[-1] in NONOCHARS:
+                w = w[:-1]
+            actual_words.append(w)
         #words = re.split("[\W+]", data)
-        return words
+        return actual_words
 
 
     def triples(self):
@@ -77,13 +86,14 @@ class Plugin(object):
 
     def get_random_end(self):
         # crazy strategy for skewing probabilities!!!11
-        period = ['.' for x in range(20)]
-        bang = ['!' for x in range(10)]
-        question = ['?' for x in range(5)]
-        triple_bang = ['!!!' for x in range(2)]
-        smile = [':-)' for x in range(1)]
-        ironic = ['!!!11' for x in range(1)]
-        joined = [x for x in chain(period, bang, question, triple_bang, smile, ironic)]
+        period =      ['.'     for x in range(20)]
+        bang =        ['!'     for x in range(10)]
+        question =    ['?'     for x in range(5)]
+        triple_bang = ['!!!'   for x in range(2)]
+        smile =       [':-)'   for x in range(1)]
+        ironic =      ['!!!11' for x in range(1)]
+        suspense =    ['...'   for x in range(2)]
+        joined = [x for x in chain(period, bang, question, triple_bang, smile, ironic, suspense)]
         return random.choice(joined)
 
     def get_nick_data(self, log):
@@ -122,4 +132,4 @@ class Plugin(object):
 if __name__ == '__main__':
     print('done')
     p = Plugin()
-    p.cmd('talklike', 'cyclo', '#gloop')
+    p.cmd('talklike', 'tanyabt', '#termvakt-fjas')
