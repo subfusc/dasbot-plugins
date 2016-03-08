@@ -1,7 +1,7 @@
-# -*- coding: utf-8 -*- 
+# -*- coding: utf-8 -*-
 from GlobalConfig import *
 import re
-from random import randint
+from random import randint, choice
 
 SHADAP_RE = r'[^s]*sh[ua][td][^ua]*[ua]p'
 DICE_CMD_RE = r'^(?P<number>[0-5]?\d?)[dD](?P<size>[1-9]|\d{2,3})$'
@@ -17,7 +17,27 @@ class Plugin(object):
         self.verbose = kwargs['verbose']
         self.debug = kwargs['debug']
         self.jobs_exist = 'new_job' in kwargs and 'del_job' in kwargs
-        
+        self.ball_response = ['It is certain',
+                              'It is decidedly so',
+                              'Without a doubt',
+                              'Yes, definitely',
+                              'You may rely on it',
+                              'As I see it, yes',
+                              'Most likely',
+                              'Outlook good',
+                              'Yes',
+                              'Signs point to yes',
+                              'Reply hazy try again',
+                              'Ask again later',
+                              'Better not tell you now',
+                              'Cannot predict now',
+                              'Concentrate and ask again',
+                              'Don\'t count on it',
+                              'My reply is no',
+                              'My sources say no',
+                              'Outlook not so good',
+                              'Very doubtful']
+
     def listen(self, msg, channel, **kwargs):
         if msg.find(NICK) != -1 and self.shadap.search(msg):
             return [(0, channel, kwargs['from_nick'], 'Fuck you! I\'m only doing what I\'m being told to do.')]
@@ -48,6 +68,8 @@ class Plugin(object):
             return [(0, channel, kwargs['from_nick'], 'yes' if self.debug else 'no')]
         if command == 'cronjobs?':
             return [(0, channel, kwargs['from_nick'], 'yes' if self.jobs_exist else 'no')]
+        if command == '8ball' or command == '8' or command == 'ball':
+            return [(0, channel, kwargs['from_nick'], choice(self.ball_response))]
         if match:
             if match.group('number') != '':
                 answ = [randint(1, int(match.group('size'))) for x in range(0, int(match.group('number')))]
