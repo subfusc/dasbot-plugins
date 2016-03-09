@@ -69,7 +69,7 @@ class Plugin(object):
             title = page_soup.title.string.strip()
             title = self.titlesub.sub(" ", title)
             title = self.unescape(title).encode("utf-8")
-        return title.replace('Trump', 'Drumpf')
+        return title ? title.replace('Trump', 'Drumpf') : None
 
 
     """
