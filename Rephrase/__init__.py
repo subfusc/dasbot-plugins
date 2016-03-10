@@ -11,7 +11,18 @@ from urllib import urlopen
 
 class Plugin(object):
     def __init__(self, **kwargs):
+        self.lastsay = {}
+        self.verylastsay = {}
+        self.wlen = 4
+        self.slen = 4
         pass
+
+    def listen(self, msg, channel, **kwargs):
+        print "Add to lastsay-dict: {} {} {}".format(msg, channel, kwargs['from_nick'])
+        if channel not in self.lastsay:
+            self.lastsay[channel] = {}
+        self.lastsay[channel][kwargs['from_nick']] = msg
+        self.verylastsay[channel] = msg
 
     def stupid_tokenize(self, sent):
         sent = re.split('([ %s])' % (punctuation), sent, flags=re.UNICODE)
@@ -28,37 +39,57 @@ class Plugin(object):
             log_nick = line[2].split("!")[0].split()[0].strip()
             if nick == log_nick :
                 sent = ' '.join([w.lower() for w in line[4:]])
-                if len(sent.split(" ") > 4):
+                if len(sent.split(" ") > self.slen):
                     return sent
 
 
-    def pick_similar(self, word):
-        apisearch = "http://ltr.uio.no/semvec/%s/%s/api" % ('norge', word)
+    def pick_similar(self, word, lang):
+        apisearch = "http://ltr.uio.no/semvec/%s/%s/api" % (lang, word)
         result = urlopen(apisearch).read()
         try:
-            if result:
-                result = [l.split()[0] for l in result.split('\n')[2:]
-                          if len(l) > 1]
-                return random.choice(result)
+            result = [l.split()[0] for l in result.split('\n')[2:]
+                      if len(l) > 1]
+            return random.choice(result)
         except:
+            #  is unknown to the model
             return word
 
-    def rephrase(self, sent):
+    def rephrase(self, sent, lang):
         sent = self.stupid_tokenize(sent)
         new_sent = []
         for word in sent:
-            if len(word) > 5:
-                word = self.pick_similar(word)
+            if len(word) > self.wlen:
+                print "from {} ".format(word)
+                word = self.pick_similar(word, lang)
+                print "to ... {}".format(word)
             new_sent.append(word)
         return ' '.join(new_sent)
+    
+    def pretty_print(self, sent):
+        sent = [w.strip() for w in sent.split(punctuation)]
+        return "".join([w.strip() for w in sent.split(punctuation)])
 
     def cmd(self, command, args, channel, **kwargs):
-        if command == 'rephrase' and args:
-            last_sent = self.get_last_sent(args.strip(), channel.strip("#"))
-            rephrased = self.rephrase(last_sent)
+        if command == 'rephrase':
+            lang = 'norge'
+            if args:
+                args = args.split()
+                if len(args) == 2:
+                    lang = 'enwiki' # any 2. arg -> en
+                args = args[0]
+                if channel not in self.lastsay or args not in self.lastsay[channel]:
+                    return [(0, channel, 'I have no memory of a last sentence from {}'.format(args))]
+            elif channel not in self.verylastsay:
+                return [(0, channel, 'I have no memory of a last sentence'.format(args))]
+            rephrased = self.rephrase(self.lastsay[channel][args], lang)
+            rephrased = self.pretty_print(rephrased)
             return [(0, channel, rephrased)]
 
 if __name__ == '__main__':
     print('done')
     p = Plugin()
-    p.cmd('rephrase', 'tanyabt', '#termvakt-fjas')
+    p.listen('Slip them into different sleeves! Buy both, and be deceived', '#bar', from_nick = 'baz')
+    print p.cmd('rephrase', 'baz en', '#bar')
+    p.listen('Ingenting er morsommere enn hammermessige irc-botter.', '#bar', from_nick = 'baz')
+    print p.lastsay
+    print p.cmd('rephrase', 'baz', '#bar')
