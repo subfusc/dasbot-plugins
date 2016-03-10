@@ -35,11 +35,13 @@ class Plugin(object):
     def pick_similar(self, word):
         apisearch = "http://ltr.uio.no/semvec/%s/%s/api" % ('norge', word)
         result = urlopen(apisearch).read()
-        if result:
-            result = [l.split()[0] for l in result.split('\n')[2:]
-                      if len(l) > 1]
-            return random.choice(result)
-
+        try:
+            if result:
+                result = [l.split()[0] for l in result.split('\n')[2:]
+                          if len(l) > 1]
+                return random.choice(result)
+        except:
+            return word
     def rephrase(self, sent):
         sent = self.stupid_tokenize(sent)
         new_sent = []
