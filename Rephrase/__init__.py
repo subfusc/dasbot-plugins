@@ -14,14 +14,16 @@ class Plugin(object):
         self.lastsay = {}
         self.verylastsay = {}
         self.wlen = 4
-        self.slen = 4
+        self.slen = 3
+        self.case = 'sent'
         pass
 
     def listen(self, msg, channel, **kwargs):
-        if channel not in self.lastsay:
-            self.lastsay[channel] = {}
-        self.lastsay[channel][kwargs['from_nick']] = msg
-        self.verylastsay[channel] = msg
+        if len(msg.split()) > self.slen:
+            if channel not in self.lastsay:
+                self.lastsay[channel] = {}
+            self.lastsay[channel][kwargs['from_nick']] = msg
+            self.verylastsay[channel] = msg
 
     def stupid_tokenize(self, sent):
         sent = re.split('([ %s])' % (punctuation), sent, flags=re.UNICODE)
@@ -79,7 +81,12 @@ class Plugin(object):
                 if channel not in self.lastsay or args not in self.lastsay[channel]:
                     return [(0, channel, 'I have no memory of a last sentence from {}'.format(args))]
             elif channel not in self.verylastsay:
+                #print "channel not in self.verylastsay"
                 return [(0, channel, 'I have no memory of a last sentence'.format(args))]
+            else:
+                rephrased = self.rephrase(self.verylastsay[channel], lang)
+                rephrased = self.pretty_print(rephrased)
+                return [(0, channel, rephrased)]
             rephrased = self.rephrase(self.lastsay[channel][args], lang)
             rephrased = self.pretty_print(rephrased)
             return [(0, channel, rephrased)]
@@ -91,4 +98,5 @@ if __name__ == '__main__':
     print p.cmd('rephrase', 'baz en', '#bar')
     p.listen('Ingenting er morsommere enn hammermessige irc-botter.', '#bar', from_nick = 'baz')
     print p.lastsay
+    print p.cmd('rephrase', 'baz', '#bar')
     print p.cmd('rephrase', 'baz', '#bar')
