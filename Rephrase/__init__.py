@@ -28,7 +28,7 @@ class Plugin(object):
             log_nick = line[2].split("!")[0].split()[0].strip()
             if nick == log_nick :
                 sent = ' '.join([w.lower() for w in line[4:]])
-                if len(sent.split(" ") > 4:
+                if len(sent.split(" ") > 4):
                     return sent
 
 
