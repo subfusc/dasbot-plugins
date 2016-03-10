@@ -9,8 +9,6 @@ import re
 from itertools import chain
 from urllib import urlopen
 
-NONOCHARS = "\"'()[]\{\}"
-
 class Plugin(object):
     def __init__(self, **kwargs):
         pass
@@ -28,8 +26,10 @@ class Plugin(object):
         for line in reversed(log):
             line = line.split()
             log_nick = line[2].split("!")[0].split()[0].strip()
-            if nick == log_nick:
-                return ' '.join([w.lower() for w in line[4:]])
+            if nick == log_nick :
+                sent = ' '.join([w.lower() for w in line[4:]])
+                if len(sent.split(" ") > 4:
+                    return sent
 
 
     def pick_similar(self, word):
@@ -42,6 +42,7 @@ class Plugin(object):
                 return random.choice(result)
         except:
             return word
+
     def rephrase(self, sent):
         sent = self.stupid_tokenize(sent)
         new_sent = []
