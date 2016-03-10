@@ -18,7 +18,6 @@ class Plugin(object):
         pass
 
     def listen(self, msg, channel, **kwargs):
-        print "Add to lastsay-dict: {} {} {}".format(msg, channel, kwargs['from_nick'])
         if channel not in self.lastsay:
             self.lastsay[channel] = {}
         self.lastsay[channel][kwargs['from_nick']] = msg
@@ -29,11 +28,12 @@ class Plugin(object):
         return [w for w in sent if not w.startswith(' ')]
 
     def get_last_sent(self, nick, chan):
+        # ikke i bruk
         log = 'data/log/%s.log' % (chan)
         try:
             log = open(log).readlines()
         except:
-            print "SHIT: ", log
+            print "Could not find file: ", log
         for line in reversed(log):
             line = line.split()
             log_nick = line[2].split("!")[0].split()[0].strip()
@@ -59,15 +59,14 @@ class Plugin(object):
         new_sent = []
         for word in sent:
             if len(word) > self.wlen:
-                print "from {} ".format(word)
                 word = self.pick_similar(word, lang)
-                print "to ... {}".format(word)
             new_sent.append(word)
         return ' '.join(new_sent)
     
     def pretty_print(self, sent):
-        sent = [w.strip() for w in sent.split(punctuation)]
-        return "".join([w.strip() for w in sent.split(punctuation)])
+        pp = "".join([w.strip() for w in re.split('([%s])' % (punctuation), sent)])
+        pp = pp[0].upper() + pp[1:]
+        return pp
 
     def cmd(self, command, args, channel, **kwargs):
         if command == 'rephrase':
