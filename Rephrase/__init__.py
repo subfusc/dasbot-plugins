@@ -9,6 +9,7 @@ import os
 import re
 from itertools import chain
 from urllib import urlopen
+import GlobalConfig as conf
 
 re_punct = re.compile('([{}])'.format(re.escape(punctuation)), flags=re.UNICODE)
 re_punctspace = re.compile(u'([!?.,:;%)])', flags=re.UNICODE)
