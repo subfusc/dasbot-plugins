@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #from GlobalConfig import *
 import re
-import duckduckgo
+import duckduckgo # pip install duckduckgo2
 from random import randint, choice
 
 
@@ -13,7 +13,6 @@ class Plugin(object):
         self.last = {}
 
     def listen(self, msg, channel, **kwargs):
-        print msg
         hva = self.hvaer.search(msg)
         if hva:
             answer = self.ddg(hva.group(2))
@@ -27,7 +26,7 @@ class Plugin(object):
                 solve = command[1:] + args
             else:
                 solve = args
-            print 'solve:' + solve
+            #print 'solve:' + solve
             answer = self.ddg(solve)
             if answer:
                 return [(0, channel, kwargs['from_nick'], answer)]
@@ -35,13 +34,24 @@ class Plugin(object):
 
     def ddg(self, query):
         r = duckduckgo.query(query)
-        print r.type
+        #print r.type
         if r.type == 'exclusive':
             return r.answer.text
         if r.type == 'disambiguation':
             return u'Is this what you think of: ' + r.related[0].text
+        if r.type == 'answer':
+            tmp = r.abstract.text
+            tmp = self.smart_truncate(tmp) + ' (' + r.abstract.url + ')'
+            return tmp
         else:
             return u'No idea'
+
+    def smart_truncate(self, content, length=80, suffix='...'):
+        print type(content)
+        if len(content) <= length:
+            return content
+        else:
+            return content[:length].rsplit(' ', 1)[0]+suffix
 
 
 
@@ -57,3 +67,4 @@ if __name__ == '__main__':
     print(p.cmd('?5 * 6', None, '#iskbot', from_nick='foo'))
     print(p.cmd('? oslo', None, '#iskbot', from_nick='foo'))
     print(p.cmd('? oslo + trondheim', None, '#iskbot', from_nick='foo'))
+    print(p.cmd('?minecraft', None, '#iskbot', from_nick='foo'))
