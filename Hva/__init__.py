@@ -8,7 +8,7 @@ from random import randint, choice
 class Plugin(object):
 
     def __init__(self, **kwargs):
-        self.hvaer = re.compile(r'(hva er|what is) (.*)', re.I) #[\?$]', re.I)
+        self.hvaer = re.compile(r'(hva er|what is) (.*)\?', re.I) #[\?$]', re.I)
         #self.api = [line for line in open('apikey.txt', 'r')]
         self.last = {}
 
@@ -19,7 +19,7 @@ class Plugin(object):
             return [(0, channel, kwargs['from_nick'], answer)]
 
     def cmd(self, command, args, channel, **kwargs):
-        if command[0] == '?':
+        if command[0] == '?' or command[0] == 'hva' or command[0] == 'what':
             if len(command) > 1:
                 if not args:
                     args = ""
@@ -47,7 +47,7 @@ class Plugin(object):
             return u'No idea'
 
     def smart_truncate(self, content, length=80, suffix='...'):
-        print type(content)
+        #print type(content)
         if len(content) <= length:
             return content
         else:
@@ -64,7 +64,10 @@ if __name__ == '__main__':
     print(p.listen('Hva er betasuppe?', '#iskbot', from_nick='foo'))
     print(p.listen('What is Oslo?', '#iskbot', from_nick='foo'))
     print(p.listen('hmmm. Hva er 5 * 6', '#iskbot', from_nick='foo'))
+    print(p.listen('What is 5?', '#iskbot', from_nick='foo'))
+    print(p.listen('What is 5', '#iskbot', from_nick='foo'))
     print(p.cmd('?5 * 6', None, '#iskbot', from_nick='foo'))
     print(p.cmd('? oslo', None, '#iskbot', from_nick='foo'))
-    print(p.cmd('? oslo + trondheim', None, '#iskbot', from_nick='foo'))
+    print(p.cmd('? oslo?', None, '#iskbot', from_nick='foo'))
     print(p.cmd('?minecraft', None, '#iskbot', from_nick='foo'))
+
