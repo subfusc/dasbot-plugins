@@ -8,7 +8,7 @@ from random import randint, choice
 class Plugin(object):
 
     def __init__(self, **kwargs):
-        self.hvaer = re.compile(r'(hva er|what is) (.*)\?', re.I) #[\?$]', re.I)
+        self.hvaer = re.compile(r'(hva er|what is) (.*)\??', re.I) #[\?$]', re.I)
         #self.api = [line for line in open('apikey.txt', 'r')]
         self.last = {}
 
