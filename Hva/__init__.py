@@ -7,7 +7,10 @@ urllib3.disable_warnings()
 import wikipedia
 from random import randint, choice
 import time
-import GlobalConfig as conf
+try:
+    import GlobalConfig as conf
+except:
+    pass
 
 class Plugin(object):
 
@@ -16,6 +19,7 @@ class Plugin(object):
         self.whatis = re.compile(r'what is ([^\?]*)\??', re.I) #[\?$]', re.I)
         self.wp_no_ignoreline = re.compile(r'kan ha andre betydninger', re.I)
         self.wp_en_ignoreline = re.compile(r'For other uses', re.I)
+        self.q_art = re.compile(r'^(a|an|en|et)$', re.I)
         #self.api = [line for line in open('apikey.txt', 'r')]
         self.last = {}
 
@@ -26,14 +30,23 @@ class Plugin(object):
             return [(1, kwargs['from_nick'], conf.COMMAND_CHAR + command + " [-lang] [query]"),
              (1, kwargs['from_nick'], "Gives answer. Are also trigged by hva er [query]? and what are [query]?")]
 
+    def remove_art(self, query):
+        q = query.split()
+        if len(q) > 1:
+            if self.q_art.match(q[0]):
+                return "".join(q[1:])
+        return query
+
     def listen(self, msg, channel, **kwargs):
         hva = self.hvaer.search(msg)
         if hva:
-            answer = self.ddg(hva.group(1), lang='no')
+            query = self.remove_art(hva.group(1))
+            answer = self.ddg(query, lang='no')
             return [(0, channel, kwargs['from_nick'], answer)]
         what = self.whatis.search(msg)
         if what:
-            answer = self.ddg(what.group(1), lang='en')
+            query = self.remove_art(what.group(1))
+            answer = self.ddg(query, lang='en')
             return [(0, channel, kwargs['from_nick'], answer)]
 
     def cmd(self, command, args, channel, **kwargs):
@@ -108,19 +121,25 @@ class Plugin(object):
             summary = self.wp_clean(summary)
         return self.smart_truncate(summary)
 
+    def wp_run(self, query, lang='en'):
+        wik = self.wp(query, lang=lang)
+        if wik:
+            if lang == 'no':
+                tmp = wik # self.ddg_chose(r.related)
+            else:
+                tmp = wik # self.ddg_chose(r.related)
+            tmp = tmp.encode('utf-8')
+            return tmp
+        return ""
+
     def ddg(self, query, lang='en'):
         r = duckduckgo.query(query)
         if r.type == 'exclusive':
             return r.answer.text.encode('utf-8')
         if r.type == 'disambiguation':
-            wik = self.wp(query, lang=lang)
+            wik = self.wp_run(query, lang)
             if wik:
-                if lang == 'no':
-                    tmp = wik # self.ddg_chose(r.related)
-                else:
-                    tmp = wik # self.ddg_chose(r.related)
-                tmp = tmp.encode('utf-8')
-                return tmp
+                return wik
             elif len(r.related) > 0:
                 tmp = u'Is this what you think of: ' + self.ddg_chose(r.related)
                 tmp = tmp.encode('utf-8')
@@ -133,6 +152,9 @@ class Plugin(object):
             tmp = tmp.encode('utf-8')
             return tmp
         else:
+            wik = self.wp_run(query, lang)
+            if wik:
+                return wik
             return u'No idea'
 
     def smart_truncate(self, content, length=100, suffix='...'):
@@ -148,6 +170,10 @@ if __name__ == '__main__':
     #print(p.listen('Hva er 5*6?', '#iskbot', from_nick='foo'))
     #print(p.listen('Hva er 5 * 6', '#iskbot', from_nick='foo'))
     #print(p.listen('Hva er Oslo?', '#iskbot', from_nick='foo'))
+    print(p.listen('Hva er en bil?', '#iskbot', from_nick='foo'))
+    print(p.listen('Hva er bil?', '#iskbot', from_nick='foo'))
+    print(p.listen('What is a car', '#iskbot', from_nick='foo'))
+    print(p.listen('What is car', '#iskbot', from_nick='foo'))
     #print(p.listen('Hva er betasuppe?', '#iskbot', from_nick='foo'))
     #print(p.listen('What is Oslo?', '#iskbot', from_nick='foo'))
     #print(p.listen('hmmm. Hva er 5 * 6', '#iskbot', from_nick='foo'))
@@ -163,5 +189,5 @@ if __name__ == '__main__':
     #print(p.cmd('?', '-sv minecraft', '#iskbot', from_nick='foo'))
     #print(p.cmd('?', '-ja totoro', '#iskbot', from_nick='foo'))
     #print(p.cmd('?', '-ja Volvo', '#iskbot', from_nick='foo'))
-    print(p.cmd('?', None, '#iskbot', from_nick='foo'))
+    #print(p.cmd('?', None, '#iskbot', from_nick='foo'))
 
