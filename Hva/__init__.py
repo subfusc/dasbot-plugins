@@ -7,17 +7,24 @@ urllib3.disable_warnings()
 import wikipedia
 from random import randint, choice
 import time
+import GlobalConfig as conf
 
 class Plugin(object):
 
     def __init__(self, **kwargs):
         self.hvaer = re.compile(r'hva er ([^\?]*)\??', re.I) #[\?$]', re.I)
         self.whatis = re.compile(r'what is ([^\?]*)\??', re.I) #[\?$]', re.I)
-        #TODO hoppe over linjer med slikt innhold:
         self.wp_no_ignoreline = re.compile(r'kan ha andre betydninger', re.I)
         self.wp_en_ignoreline = re.compile(r'For other uses', re.I)
         #self.api = [line for line in open('apikey.txt', 'r')]
         self.last = {}
+
+    def help(self, command, argc, channel, **kwargs):
+        if command == 'all':
+            return [(1, kwargs['from_nick'], 'Hva: ?, hva, what')]
+        if command == 'hva' or command == '?' or command == 'what':
+            return [(1, kwargs['from_nick'], conf.COMMAND_CHAR + command + " [-lang] [query]"),
+             (1, kwargs['from_nick'], "Gives answer. Are also trigged by hva er [query]? and what are [query]?")]
 
     def listen(self, msg, channel, **kwargs):
         hva = self.hvaer.search(msg)
@@ -36,26 +43,27 @@ class Plugin(object):
                 if not args:
                     args = ""
                 query = command[1:] + args
-            elif len(args) > 0:
+            elif args and len(args) > 0:
                 argssplit = args.split(None, 1)
-                if len(argssplit[0]) == 3 and argssplit[0][0] == '-':
+                if argssplit[0][0] == '-':
+                    if len(argssplit) < 2:
+                        return [(1, kwargs['from_nick'], "Usage: " + conf.COMMAND_CHAR + command + " [-lang] [query]")]
                     query = argssplit[1]
                     lang = argssplit[0][1:]
-                    print "lang: {}".format(lang)
                     answer = self.wp(query.strip(), lang=lang).encode('utf-8')
                     if answer:
                         return [(0, channel, kwargs['from_nick'], answer)]
+                    else:
+                        return [(0, channel, kwargs['from_nick'], "Sorry, I have no idea.")]
                 else:
                     query = args
             else:
-                query = 'void'
-            print 'query:' + query
+                return [(0, channel, kwargs['from_nick'], "Look. Up in the sky. It's a bird. It's a plane. No. It's just the void. Infinite and indifferent. We're so small. So very very small.")]
             answer = self.ddg(query.strip(), lang=lang)
             if answer:
                 return [(0, channel, kwargs['from_nick'], answer)]
 
     def ddg_chose(self, related):
-        #print "type: {}".format(type(related))
         for it in related:
             if it.topics: # and it.topics.name != 'See also':
                 return self.ddg_chose(it.topics)
@@ -79,28 +87,29 @@ class Plugin(object):
         return string, i
 
     def wp_clean(self, summary):
+        if self.wp_en_ignoreline.search(summary) or self.wp_no_ignoreline.search(summary):
+            summary = ""
         summary = summary.replace('?/i', "")
         summary, num = self.remove_brackets(summary, 0)
         summary = summary.replace('  ', ' ')
         return summary
 
     def wp(self, query, lang='en'):
-        #print '...{}...'.format(query)
         wikipedia.set_lang(lang)
-        #print "|{}|".format(lang)
-        #print "|{}|".format(query)
-        #time.sleep(1)
-        summarylist = wikipedia.summary(query).splitlines()
+        try:
+            s = wikipedia.summary(query)
+            summarylist = s.splitlines()
+        except:
+            print "exception"
+            summarylist = []
         summary = ""
-        while len(summarylist) > 1 and len(summary.split()) < 4:
+        while len(summarylist) > 0 and len(summary.split()) < 4:
             summary = summarylist.pop(0)
             summary = self.wp_clean(summary)
         return self.smart_truncate(summary)
 
     def ddg(self, query, lang='en'):
-        print "1{}1".format(query)
         r = duckduckgo.query(query)
-        #print r.type
         if r.type == 'exclusive':
             return r.answer.text.encode('utf-8')
         if r.type == 'disambiguation':
@@ -118,7 +127,6 @@ class Plugin(object):
                 return tmp
             else:
                 return u'My head hurts :(.'
-                #print type(tmp)
         if r.type == 'answer':
             tmp = r.abstract.text
             tmp = self.smart_truncate(tmp) + ' (' + r.abstract.url + ')'
@@ -128,7 +136,6 @@ class Plugin(object):
             return u'No idea'
 
     def smart_truncate(self, content, length=100, suffix='...'):
-        #print type(content)
         if len(content) <= length:
             return content
         else:
@@ -137,7 +144,6 @@ class Plugin(object):
 
 
 if __name__ == '__main__':
-    print('done')
     p = Plugin()
     #print(p.listen('Hva er 5*6?', '#iskbot', from_nick='foo'))
     #print(p.listen('Hva er 5 * 6', '#iskbot', from_nick='foo'))
@@ -146,8 +152,6 @@ if __name__ == '__main__':
     #print(p.listen('What is Oslo?', '#iskbot', from_nick='foo'))
     #print(p.listen('hmmm. Hva er 5 * 6', '#iskbot', from_nick='foo'))
     #print(p.listen('What is 5?', '#iskbot', from_nick='foo'))
-    print(p.listen('Hva er trond', '#iskbot', from_nick='foo'))
-    #print(p.listen('What is trond', '#iskbot', from_nick='foo'))
     #print(p.cmd('?5 * 6', None, '#iskbot', from_nick='foo'))
     #print(p.cmd('?oslo', None, '#iskbot', from_nick='foo'))
     #print(p.cmd('?', 'oslo', '#iskbot', from_nick='foo'))
@@ -157,4 +161,7 @@ if __name__ == '__main__':
     #print(p.cmd('?', '-en Apple', '#iskbot', from_nick='foo'))
     #print(p.cmd('?minecraft', None, '#iskbot', from_nick='foo'))
     #print(p.cmd('?', '-sv minecraft', '#iskbot', from_nick='foo'))
+    #print(p.cmd('?', '-ja totoro', '#iskbot', from_nick='foo'))
+    #print(p.cmd('?', '-ja Volvo', '#iskbot', from_nick='foo'))
+    print(p.cmd('?', None, '#iskbot', from_nick='foo'))
 
