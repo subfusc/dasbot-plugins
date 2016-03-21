@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #from GlobalConfig import *
-import regex as re
+import re
 import duckduckgo # pip install duckduckgo2
 import urllib3
 urllib3.disable_warnings()
