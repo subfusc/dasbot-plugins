@@ -28,12 +28,13 @@ class Plugin(object):
 
     def cmd(self, cmd, args, channel, **kwargs):
         if cmd == 'identify-mc-spammer' and kwargs['auth_level'] > 50:
-            self._connect_channel(channel, args)
+            self._connect_channel(channel.strip('#'), args)
             return [(0, channel, 'I see you {}!'.format(args))]
         elif cmd == 'mc-last-seen' and args:
-            return [(0, channel, kwargs['from_nick'], self._has_seen(channel, args))]
+            return [(0, channel, kwargs['from_nick'], self._has_seen(channel.strip('#'), args))]
 
     def listen(self, msg, channel, **kwargs):
+        channel = channel.strip('#')
         if channel in self.monitored_channels and self.monitored_channels[channel] == kwargs['from_nick']:
             match = self.monitor_re.match(msg)
             if match:
@@ -41,9 +42,9 @@ class Plugin(object):
 
 if __name__ == '__main__':
     p = Plugin()
-    print p.cmd('identify-mc-spammer', 'gloop-mc', 'gloop', auth_level=51)
-    print p.cmd('mc-last-seen', 'lebchen', 'gloop', from_nick='foo')
-    p.listen('<b23lebchenxxx.> hvis man har en og det ikke står noe tall altså :P', 'gloop', from_nick='gloop-mc')
-    p.listen('<b23lebchenxyx.> left the game.', 'gloop', from_nick='gloop-mc')
-    p.listen('<b23lebchenxyz.> joined the game.', 'gloop', from_nick='gloop-mc')
+    print p.cmd('identify-mc-spammer', 'gloop-mc', '#gloop', auth_level=51)
+    print p.cmd('mc-last-seen', 'lebchen', '#gloop', from_nick='foo')
+    p.listen('<b23lebchenxxx.> hvis man har en og det ikke står noe tall altså :P', '#gloop', from_nick='gloop-mc')
+    p.listen('<b23lebchenxyx.> left the game.', '#gloop', from_nick='gloop-mc')
+    p.listen('<b23lebchenxyz.> joined the game.', '#gloop', from_nick='gloop-mc')
     print p.last_seen
