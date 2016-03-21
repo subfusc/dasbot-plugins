@@ -3,8 +3,10 @@ from urllib import urlopen
 from urllib import FancyURLopener
 from random import randint, choice
 from time   import time
+import datetime
 from kitchen.text.converters import to_bytes, to_unicode
 import json
+import re
 
 class RedditOpener(FancyURLopener):
     version = 'Das hammermaessige bot/Python/urllib'
@@ -25,9 +27,10 @@ class Plugin:
             'morgen! ',
             'god morgen ',
             'heia morgen! ',
-            'ny dag. jippi! '
+            'ny dag. jippi! ',
             ]
-
+        self.morn_re = re.compile(r'^(god|go)? ?mo(r|in)(gen|n)?', re.I)
+        self.morndone = {}
 
     def cmd(self, command, args, channel, **kwargs):
         if command == 'aww' or command == 'sad' or command == 'depressed' or command == 'morn':
@@ -63,6 +66,16 @@ class Plugin:
             except:
                 return[(0, channel, kwars['from_nick'], 'Couldn\'t convert to unicode. :(')]
 
+    def listen(self, msg, channel, **kwargs):
+        morn = self.morn_re.search(msg)
+        if morn:
+            print "morn funnet"
+            today = datetime.datetime.now().date()
+            print "today: {}".format(today)
+            if channel not in self.morndone or (channel in self.morndone and self.morndone[channel] != today):
+                print "..."
+                self.morndone[channel] = today
+                return self.cmd('morn', None, channel, **kwargs)
 
 if __name__ == '__main__':
     p = Plugin()
@@ -72,3 +85,6 @@ if __name__ == '__main__':
     print(p.cmd('aww', 'ÅssFøce', '#dasbot', from_nick='foo'))
     print(p.cmd('aww', 'AssFace foo', '#dasbot', from_nick='foo'))
     print(p.cmd('aww', 'AssFace #foo', '#dasbot', from_nick='foo'))
+    print(p.listen('moin', '#dasbot', from_nick='foo'))
+    print(p.listen('moin', '#dasbot', from_nick='foo'))
+    print(p.listen('god morgen', '#dasbot', from_nick='foo'))
