@@ -60,7 +60,7 @@ class Plugin(object):
                     return [(0, channel, kwargs['from_nick'], answer)]
 
     def cmd(self, command, args, channel, **kwargs):
-        if command[0] == '?' or command == 'hva' or command == 'what':
+        if (len(command) > 1 and command[0] == '?') or command == 'hva' or command == 'what':
             lang = 'en'
             if command[0] == '?' and len(command) > 1:
                 if not args:
@@ -203,4 +203,3 @@ if __name__ == '__main__':
     #print(p.cmd('?', '-ja totoro', '#iskbot', from_nick='foo'))
     #print(p.cmd('?', '-ja Volvo', '#iskbot', from_nick='foo'))
     #print(p.cmd('?', None, '#iskbot', from_nick='foo'))
-
