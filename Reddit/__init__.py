@@ -69,11 +69,8 @@ class Plugin:
     def listen(self, msg, channel, **kwargs):
         morn = self.morn_re.search(msg)
         if morn:
-            print "morn funnet"
             today = datetime.datetime.now().date()
-            print "today: {}".format(today)
             if channel not in self.morndone or (channel in self.morndone and self.morndone[channel] != today):
-                print "..."
                 self.morndone[channel] = today
                 return self.cmd('morn', None, channel, **kwargs)
 
