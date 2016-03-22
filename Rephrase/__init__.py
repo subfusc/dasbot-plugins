@@ -36,7 +36,7 @@ class Plugin(object):
             if channel not in self.lastsay:
                 self.lastsay[channel] = {}
             self.lastsay[channel][kwargs['from_nick']] = msg
-            self.verylastsay[channel] = msg
+            self.verylastsay[channel] = msg.to_unicode()
 
     def stupid_tokenize(self, sent):
         sent = re.split('([ %s])' % (punctuation), sent, flags=re.UNICODE)
