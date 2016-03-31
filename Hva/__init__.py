@@ -46,7 +46,7 @@ class Plugin(object):
         msg_split = msg.split()
         if len(msg_split) > 2:
             forste_ord = msg.split()[2].translate(string.maketrans("",""), string.punctuation)
-            print forste_ord
+            #print forste_ord
             if hva and forste_ord.lower() not in self.stopwords_no:
                 query = self.remove_art(hva.group(1))
                 answer = self.ddg(query, lang='no')

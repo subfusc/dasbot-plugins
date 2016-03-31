@@ -75,7 +75,7 @@ class Plugin(object):
             for file in logger:
                 if file.endswith(".log"):
                     chan = file[:-4]
-                    print 'chan: ', chan
+                    # print 'chan: ', chan
                     log = open('data/log/%s' % (file)).readlines()
                     if chan not in self.hmms:
                         self.hmms[chan] = {}
@@ -111,8 +111,8 @@ class Plugin(object):
 
     def cmd(self, command, args, channel, **kwargs):
         if command == 'talklike' and args:
-            print 'talklike: ' + channel
-            print self.hmms.keys()
+            # print 'talklike: ' + channel
+            # print self.hmms.keys()
         #if channel in self.hmms:
             if channel[1:] in self.hmms and args.strip() in self.hmms[channel[1:]]:
                 blurb = self.hmms[channel[1:]][args.strip()].generate_markov_text(25)
