@@ -13,8 +13,11 @@ class Plugin(object):
         for category in dinnars:
             if category['category'] == u'pris': continue
             for dish in category['dishes']:
+                buffet = dish.find('buffet') != -1
                 dish = dish.split('Allergener')[0].split(':')[-1].encode('utf-8')
-                response.append((0, channel, nick, '[{}] {}'.format(category['category'].encode('utf-8'), dish)))
+                response.append((0, channel, nick, '[{}] {}'.format(
+                    'buffet' if buffet else category['category'].encode('utf-8'),
+                    dish)))
 
         return response
 
