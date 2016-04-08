@@ -5,39 +5,36 @@ from Kafe import Kafe
 class Plugin(object):
 
     def __init__(self):
-        self.middag = Kafe('inf')
-        
+        self.cafe_api = Kafe()
+
+    def response_for_cafe(self, channel, nick, cafe):
+        dinnars = self.cafe_api.dinners_for(cafe)
+        response = []
+        for category in dinnars:
+            if category['category'] == u'pris': continue
+            for dish in category['dishes']:
+                dish = dish.split('Allergener')[0].split(':')[-1].encode('utf-8')
+                response.append((0, channel, nick, '[{}] {}'.format(category['category'].encode('utf-8'), dish)))
+
+        return response
+
     def cmd(self, command, args, channel, **kwargs):
         if command == 'middag':
-            middager = None
-            if args != None: 
-                args = args.lower()
-                if args.find(' ') != -1:
-                    args = args.split()
-                    if args[0] == '-f':
-                        args = ' '.join(args[1:])
-                        middager = self.middag.todaysDinner(args, False)
-                    else:
-                        args = ' '.join(args)
-                        middager = self.middag.todaysDinner(args)
-                elif args == '-f':
-                    middager = self.middag.todaysDinner(None, check_closing=False)
-                    args = self.middag.cafename
+            if args and len(args) > 0:
+                cafes = self.cafe_api.cafes(args)
+                cafes = [c.encode('utf-8') for c in cafes]
+                if len(cafes) == self.cafe_api.number_of_cafes:
+                    return [(0, channel, kwargs['from_nick'], 'Tilgjengelige kafeer: {}'.format(cafes))]
+                elif len(cafes) == 1:
+                    return self.response_for_cafe(channel, kwargs['from_nick'], cafes[0])
                 else:
-                    middager = self.middag.todaysDinner(args)
+                    return [(0, channel, kwargs['from_nick'], 'Mente du en av disse: {}'.format(cafes))]
             else:
-                middager = self.middag.todaysDinner(None)
-                args = self.middag.cafename
+                return self.response_for_cafe(channel, kwargs['from_nick'], 'informatikk')
 
-            middager = (middager[0].encode('utf-8'), middager[1])
-            if middager[1] == None: return [(0, channel, 'Sorry, jeg kjenner ikke til {k}'.format(k=middager[0]))]
-            if middager[1] == 'Stengt': return [(0, channel, '{k} er stengt'.format(k=middager[0]))]
-            
-            rarr = [(0, channel, "Dagens meny på {f}".format(f = middager[0]))]
 
-            for t, middag in middager[1]:
-                middag = middag.encode('utf-8')
-                t = t.encode('utf-8')
-                #print("in loop: {r}{m}".format(m = rett[1], r = chardet.detect(rett[0])))
-                rarr.append((0, channel, t + ": " + middag))
-            return rarr
+if __name__ == '__main__':
+    p = Plugin()
+    print p.cmd('middag', None, 'iskbot', from_nick='foo')
+    print p.cmd('middag', 'fr', 'iskbot', from_nick='foo')
+    print p.cmd('middag', 'i', 'iskbot', from_nick='foo')
