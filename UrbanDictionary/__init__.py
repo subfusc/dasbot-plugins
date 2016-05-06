@@ -1,6 +1,6 @@
+# -*- coding: utf-8 -*-
 import json
-from urllib import urlopen
-from cgi import escape
+from urllib import urlopen, urlencode
 
 class Plugin(object):
 
@@ -8,8 +8,7 @@ class Plugin(object):
 
     def cmd(self, command, args, channel, **kwargs):
         if command == 'define' and args:
-            search_query = escape(args)
-            word =  self.search_urbandictionary(search_query)
+            word =  self.search_urbandictionary(args)
             if word and 'definition' in word and 'word' in word:
                 message = "{w}: {d}".format(w = word['word'].encode('utf-8'),
                                             d = word['definition'].replace("\n", "").replace("\r", "").encode('utf-8'))
@@ -36,7 +35,7 @@ class Plugin(object):
                          "Sorry, I couldn't find \"{w}\"".format(w = args))]
 
     def search_urbandictionary(self, query):
-        result = urlopen("http://api.urbandictionary.com/v0/define?term=" + query).read()
+        result = urlopen("http://api.urbandictionary.com/v0/define?" + urlencode({'term': query})).read()
         answer = json.loads(result)
         if 'result_type' in answer and answer['result_type'] == 'exact':
             return answer['list'][0]
@@ -47,3 +46,4 @@ class Plugin(object):
 if __name__ == '__main__':
     p = Plugin()
     print(p.cmd('define', 'GUI', 'test'))
+    print(p.cmd('define', "Åhus", 'test'))
