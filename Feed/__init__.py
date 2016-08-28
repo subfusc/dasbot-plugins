@@ -40,14 +40,16 @@ class Plugin(object):
             kwargs['del_job'](job)
 
     def _add_feed(self, key, feed, channel, from_nick):
+        if not channel[1:] in self.feeds:
+            self.feeds[channel[1:]] = {}
         self.feeds[channel[1:]][key] = feed
         self._write_config()
-        return [(0, channel, from_nick, "feed added")]
+        return [(1, channel, from_nick, "feed added")]
 
     def _del_feed(self, key, channel, from_nick):
         self.feeds[channel[1:]].pop(key, None)
         self._write_config()
-        return [(0, channel, from_nick, "feed deleted")]
+        return [(1, channel, from_nick, "feed deleted")]
 
     def _list_feeds(self, channel, from_nick):
         feeds = self.feeds.get(channel)
@@ -164,8 +166,9 @@ class Plugin(object):
             if len(args) < 2:
                 return [(0, channel, kwargs['from_nick'], 'todo usage')]
             if len(args) >= 3:
-                if args[1][1] != '#':
-                    args[1] = '#' + args[1]
+                print args
+                #if args[2][0] != '#':
+                #    args[2] = '#' + args[2]
                 return self._add_feed(args[0], args[1], args[2],
                                       kwargs['from_nick'])
             return self._add_feed(args[0], args[1], channel,
