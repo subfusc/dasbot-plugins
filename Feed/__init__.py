@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import GlobalConfig as conf
+import copy
 import ConfigParser  # remove
 import datetime
 import time
@@ -11,7 +12,7 @@ from collections import OrderedDict
 import os
 # import sys #remove
 
-FREQUENCY = 90  # seconds
+FREQUENCY = 120  # seconds
 
 
 class Plugin(object):
@@ -55,12 +56,11 @@ class Plugin(object):
         feeds = self.feeds.get(channel)
         if feeds:
             rlst = []
-            for k,v in feeds.items():
+            for k, v in feeds.items():
                 rlst.append([(1, channel, from_nick, "{}: {}".format(k, v))])
             return rlst
         else:
             return [(1, channel, from_nick, "No feeds for this channel")]
-        
 
     def _write_config(self):
         dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -103,38 +103,33 @@ class Plugin(object):
             return latest
         print "feed: ", feed
         d = feedparser.parse(feed)
-        print "hentet"
         if not d.feed:
-            print "0"
             return -1
         try:
-            print "1"
             ddate = dateutil.parser.parse(d.feed.updated)
         except:
-            print "2"
             ddate = (self.now - datetime.timedelta(hours=12))
-            print "3"
         if ddate > latest.get('updated'):
-            print "1"
+            print "hit"
+            last = copy.deepcopy(latest)
             latestupdated = latest['updated']
             latest['entries'] = []
-            print "2"
             for entry in d.entries:
-                print "3"
                 edate = dateutil.parser.parse(entry.updated)
                 if (edate > latestupdated and
-                        not self._match(entry, latest)):
+                        not self._match(entry, last)):
                     latest['entries'].append(entry)
             latest['updated'] = self.now
             self.latestfeed[feed] = latest
         self.latestfeed['updated'] = self.now
-        if not 'entries' in latest:
+        if 'entries' not in latest:
             latest['entries'] = []
-        print "4"
         return latest
 
-    def _match(self, entry, latest):
-        for e in latest.get('entries'):
+    def _match(self, entry, last):
+        if not last.get('entries'):
+            return False
+        for e in last.get('entries'):
             if e.title == entry.title:
                 return e
         return False
