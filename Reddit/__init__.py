@@ -31,6 +31,7 @@ class Plugin:
             ]
         self.morn_re = re.compile(r'^(god|go)? ?mo(r|in)(gen|n)?', re.I)
         self.morndone = {}
+        self.redditfix_re = re.compile(r'&amp;')
 
     def cmd(self, command, args, channel, **kwargs):
         if command == 'aww' or command == 'sad' or command == 'depressed' or command == 'morn':
@@ -47,6 +48,7 @@ class Plugin:
 
             item = self.aww_list['data']['children'][randint(1,len(self.aww_list['data']['children']) - 1)]
             message = item['data']['url']
+            message = self.redditfix_re.sub('', message)
             nick = kwargs['from_nick']
 
             if args:
