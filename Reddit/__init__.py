@@ -48,7 +48,7 @@ class Plugin:
 
             item = self.aww_list['data']['children'][randint(1,len(self.aww_list['data']['children']) - 1)]
             message = item['data']['url']
-            message = self.redditfix_re.sub('', message)
+            message = self.redditfix_re.sub('&', message)
             nick = kwargs['from_nick']
 
             if args:
